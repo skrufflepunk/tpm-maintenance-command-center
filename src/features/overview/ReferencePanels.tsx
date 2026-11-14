@@ -222,7 +222,7 @@ export function AssistantPanel({
           <Bot size={30} />
           <div>
             <h2>TPM Assistant</h2>
-            <span>Coming soon · no AI connected</span>
+            <span>Rules-based · AI coming soon</span>
           </div>
         </div>
         <div className="insight-section">
@@ -258,7 +258,7 @@ export function AssistantPanel({
             <Bot size={16} />
             AI follow-ups · Coming soon
           </button>
-          <p className="rail-caption">No messages are generated or sent.</p>
+          <p className="rail-caption">No AI connected. No messages are sent.</p>
         </div>
       </section>
       <section className="assistant-card quick-actions">

@@ -67,6 +67,14 @@ export function RecordTable({
       </button>
     </th>
   );
+  const followUp = (w: WorkOrder) => {
+    const why = reasons(w, reference, rules);
+    if (why.includes("urgent")) return "Review source-reported urgency";
+    if (why.includes("pending")) return "Review pending approval";
+    if (why.includes("aged")) return "Review aging follow-up";
+    if (why.includes("unassigned")) return "Review missing assignment";
+    return "Review details";
+  };
   return rows.length ? (
     <div
       className="table-scroll"
@@ -104,22 +112,43 @@ export function RecordTable({
                 <span className={`badge ${w.status}`}>{label(w.status)}</span>
               </td>
               <td>
-                {isActive(w)
-                  ? age(w, reference, rules) === null
-                    ? "Unknown"
-                    : `${age(w, reference, rules)} days`
-                  : "Not applicable"}
+                <span
+                  className={`age-indicator ${isActive(w) && age(w, reference, rules) !== null && age(w, reference, rules)! > rules.agingNudgeDays ? "aged" : ""}`}
+                >
+                  {isActive(w)
+                    ? age(w, reference, rules) === null
+                      ? "Unknown"
+                      : `${age(w, reference, rules)} days`
+                    : "Not applicable"}
+                </span>
+                {isActive(w) &&
+                  age(w, reference, rules) !== null &&
+                  age(w, reference, rules)! > rules.agingNudgeDays && (
+                    <small className="age-note">
+                      Over {rules.agingNudgeDays}d rule
+                    </small>
+                  )}
               </td>
               <td>
-                {snapshot.vendors.find((v) => v.id === w.vendorId)
-                  ?.displayName ??
-                  (w.vendorAssignmentState === "unassigned"
-                    ? "Explicitly unassigned"
-                    : "Unknown")}
+                <span className={`assignment ${w.vendorAssignmentState}`}>
+                  {w.vendorAssignmentState === "unknown"
+                    ? "Unknown assignment"
+                    : w.vendorAssignmentState === "unassigned"
+                      ? "Explicitly unassigned"
+                      : (snapshot.vendors.find((v) => v.id === w.vendorId)
+                          ?.displayName ?? "Unmatched vendor ID")}
+                </span>
+                <small className="cell-secondary">
+                  {w.vendorAssignmentState === "assigned"
+                    ? "Source assigned"
+                    : w.vendorAssignmentState === "unknown"
+                      ? "Coverage unavailable"
+                      : "Source explicitly absent"}
+                </small>
               </td>
               <td>
                 <button className="next-action" onClick={() => onSelect(w)}>
-                  Review details
+                  {followUp(w)}
                 </button>
                 <span className="cell-secondary">
                   {reasons(w, reference, rules)

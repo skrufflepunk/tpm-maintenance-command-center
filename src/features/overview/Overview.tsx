@@ -1,10 +1,10 @@
+import { overviewKpis } from "../../domain/overviewKpis";
 import {
   StatusDonut,
   PortfolioPanels,
   AssistantPanel,
 } from "./ReferencePanels";
 import {
-  Activity,
   ArrowRight,
   ArrowUpRight,
   Check,
@@ -14,7 +14,6 @@ import {
   Sun,
   Wrench,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { Panel } from "../../components/ui";
 import { RecordTable } from "../../components/RecordTable";
 import {
@@ -63,56 +62,15 @@ export function Overview({
   const unknownAge = active.filter(
     (w) => age(w, reference, rules) === null,
   ).length;
-  const unknownStatus = rows.filter((w) => w.status === "unknown").length;
   const durations = completionStats(rows, rules.timezone);
   const openReason = (r: Reason) =>
     setDrill({
       title: reasonNames[r],
       rows: sortQueue(counts(r), reference, rules),
     });
-  const kpis: {
-    title: string;
-    reason: Reason;
-    icon: LucideIcon;
-    note: string;
-    tone: string;
-  }[] = [
-    {
-      title: "Known active backlog",
-      reason: "active",
-      icon: ClipboardList,
-      note: `${unknownStatus} unknown status excluded`,
-      tone: "blue",
-    },
-    {
-      title: "Aging follow-ups",
-      reason: "aged",
-      icon: Clock3,
-      note: `Over ${rules.agingNudgeDays} days · ${unknownAge} age unknown`,
-      tone: "amber",
-    },
-    {
-      title: "Pending approvals",
-      reason: "pending",
-      icon: ShieldCheck,
-      note: "Explicit pending state · known active",
-      tone: "violet",
-    },
-    {
-      title: "Source urgent",
-      reason: "urgent",
-      icon: Activity,
-      note: "Source priority · known active",
-      tone: "red",
-    },
-    {
-      title: "Observed completions",
-      reason: "completed",
-      icon: Check,
-      note: "Explicit completed status · all dates",
-      tone: "green",
-    },
-  ];
+  const kpis = overviewKpis(rows, reference, rules);
+  const icons = [ClipboardList, ShieldCheck, Clock3, Check, Clock3];
+  const tones = ["blue", "amber", "red", "green", "amber"];
   const months = Array.from(
     new Set(
       rows
@@ -197,31 +155,38 @@ export function Overview({
           </div>
         </section>
         <section className="kpi-grid" aria-label="Key performance indicators">
-          {kpis.map(({ title, reason, icon: Icon, note, tone }) => (
-            <button
-              className="kpi-card"
-              onClick={() => openReason(reason)}
-              key={reason}
-            >
-              <div className="kpi-top">
-                <span>{title}</span>
-                <span className={`kpi-icon ${tone}`}>
-                  <Icon size={18} />
-                </span>
-              </div>
-              <div className="kpi-value">
-                {counts(reason).length}
-                <ArrowUpRight size={18} />
-              </div>
-              <span className="kpi-note">{note}</span>
-              <span className="kpi-scope">
-                {reason === "active" || reason === "completed"
-                  ? `${rows.length} scoped records`
-                  : `${active.length} known active records`}{" "}
-                · report-as-of basis
-              </span>
-            </button>
-          ))}
+          {kpis.map((kpi, index) => {
+            const Icon = icons[index];
+            return (
+              <button
+                className={`kpi-card kpi-${kpi.id}`}
+                onClick={() => setDrill({ title: kpi.title, rows: kpi.rows })}
+                key={kpi.id}
+              >
+                <div className="kpi-top">
+                  <span>{kpi.title}</span>
+                  <span className={`kpi-icon ${tones[index]}`}>
+                    <Icon size={20} />
+                  </span>
+                </div>
+                <div
+                  className={`kpi-value ${kpi.value === null ? "unavailable" : ""}`}
+                >
+                  {kpi.value === null
+                    ? "Unavailable"
+                    : kpi.id === "average"
+                      ? kpi.value.toFixed(1)
+                      : kpi.value}
+                  <ArrowUpRight size={16} />
+                </div>
+                {kpi.id === "average" && kpi.value !== null && (
+                  <span className="kpi-unit">{kpi.unit}</span>
+                )}
+                <span className="kpi-note">{kpi.note}</span>
+                <span className="kpi-scope">{kpi.scope}</span>
+              </button>
+            );
+          })}
         </section>
         <StatusDonut rows={rows} setDrill={setDrill} />
         <PortfolioPanels
@@ -383,11 +348,9 @@ export function Overview({
             }
           >
             <p className="chart-description">
-              {rules.queueReasonOrder
-                .map((reason) => reasonNames[reason])
-                .join(" → ")}
-              ; then age descending and stable ID. Viewing never changes source
-              records.
+              Sort by a column to inspect the current scope. Suggested
+              follow-ups are read-only; review details before acting in
+              Rentvine.
             </p>
             <RecordTable
               rows={rows}

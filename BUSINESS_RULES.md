@@ -41,3 +41,10 @@ Briefing uses active filters with an explicit scope label; optional portfolio re
 
 ## Freshness and failures
 Evaluate freshness per dataset against configured policy. Unknown source timestamp yields unknown source freshness; import-time fallback may describe receipt freshness only. A recent import of an old report is still old source data. Failed imports retain previous successful data, show the failed attempt, and never imply a refresh succeeded. Do not manufacture a next expected report if no schedule is configured.
+
+## Overview KPI presentation
+“Open Work Orders” is the known active backlog (open, in_progress, on_hold), with unknown statuses excluded and disclosed. “Awaiting Approval” counts explicit pending approval on known active records. “Over 7 Days Old” uses the configured agingNudgeDays and changes its label if that setting changes; eligibility and the strict greater-than comparison are unchanged.
+
+“Completed This Month” uses the report-as-of calendar month in the configured portfolio timezone (or the explicitly labeled import-time fallback), scoped by the shared filters. It requires explicit completed status and a valid completion date at or before the reference time/date. Missing completion dates are excluded and counted; an entirely undated completion cohort or unavailable reference month displays Unavailable. No matching completed records yields zero when the reporting month is known.
+
+“Average Days to Close” is the mean observed creation-to-completion duration across all scoped completed records, not just this month's completions. It follows the existing completion-duration eligibility rules, discloses sample size and exclusions, and labels calendar or elapsed days. No eligible pairs or simultaneously eligible date-only and timestamp cohorts produces Unavailable in the single-number card; the separate precision-specific statistics remain available below. No historical comparisons or performance percentages are inferred.

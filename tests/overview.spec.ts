@@ -10,7 +10,7 @@ test("dashboard reconciles counts, drills into records, and preserves filters ac
     page.getByRole("heading", { name: "Portfolio overview" }),
   ).toBeVisible();
   await expect(page.getByRole("status")).toHaveText(/24 of 24 fictional/);
-  const card = page.getByRole("button", { name: /Known active backlog/ });
+  const card = page.getByRole("button", { name: /Open Work Orders/ });
   const total = Number(await card.locator(".kpi-value").innerText());
   await card.click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -243,7 +243,10 @@ test("redesigned panels reconcile drill-downs, sort records and keep future acti
   ).toHaveAttribute("aria-sort", "descending");
   await expect(table.locator("tbody tr").first()).toContainText("43 days");
   await table
-    .getByRole("button", { name: "Review details", exact: true })
+    .getByRole("button", {
+      name: "Review source-reported urgency",
+      exact: true,
+    })
     .first()
     .click();
   await expect(page.getByRole("dialog")).toContainText("Fictional work order");
@@ -267,4 +270,66 @@ test("redesigned panels reconcile drill-downs, sort records and keep future acti
   await expect(page.locator(".assistant-card").first()).toContainText(
     "0 active over",
   );
+});
+
+test("five KPI cards disclose their cohorts and show unavailable means without eligible completions", async ({
+  page,
+}, info) => {
+  await page.goto("/");
+  await page.getByRole("heading", { name: "Portfolio overview" }).waitFor();
+  const kpis = page.getByRole("region", { name: "Key performance indicators" });
+  // section has an accessible name and is exposed as a region.
+  await expect(kpis.getByRole("button")).toHaveCount(5);
+  for (const [title, value] of [
+    ["Open Work Orders", "14"],
+    ["Awaiting Approval", "3"],
+    ["Over 7 Days Old", "7"],
+    ["Completed This Month", "4"],
+    ["Average Days to Close", "12.7"],
+  ]) {
+    const card = kpis.getByRole("button", { name: new RegExp(title) });
+    await expect(card.locator(".kpi-value")).toContainText(value);
+  }
+  await expect(
+    kpis.getByRole("button", { name: /Completed This Month/ }),
+  ).toContainText("2026-11");
+  await expect(
+    kpis.getByRole("button", { name: /Average Days to Close/ }),
+  ).toContainText("n=6");
+  await kpis.getByRole("button", { name: /Completed This Month/ }).click();
+  await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(5);
+  await page.keyboard.press("Escape");
+  await kpis.getByRole("button", { name: /Average Days to Close/ }).click();
+  await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(7);
+  await page.keyboard.press("Escape");
+  const table = page.locator(".lower-grid").getByRole("table");
+  const urgentRow = table
+    .getByRole("row")
+    .filter({
+      has: page.getByRole("button", { name: "DEMO-1001", exact: true }),
+    });
+  await expect(urgentRow).toContainText("Unknown assignment");
+  await expect(urgentRow).toContainText("Coverage unavailable");
+  await expect(
+    urgentRow.getByRole("button", { name: "Review source-reported urgency" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Demo rules", exact: true }).click();
+  await page.getByLabel("Aging follow-up:", { exact: false }).fill("30");
+  await page.getByRole("button", { name: "Apply demo rules" }).click();
+  await expect(
+    kpis.getByRole("button", { name: /Over 30 Days Old/ }),
+  ).toContainText("3");
+  await page
+    .getByRole("textbox", { name: "Search work orders" })
+    .fill("no-such-record");
+  await expect(
+    kpis
+      .getByRole("button", { name: /Average Days to Close/ })
+      .locator(".kpi-value"),
+  ).toHaveText("Unavailable");
+  expect(
+    await page
+      .locator(".topbar")
+      .evaluate((el) => el.getBoundingClientRect().height),
+  ).toBeLessThanOrEqual(info.project.name === "desktop" ? 100 : 132);
 });

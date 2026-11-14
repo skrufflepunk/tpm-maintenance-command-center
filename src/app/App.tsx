@@ -1,3 +1,4 @@
+import { TropicalScene } from "../components/TropicalScene";
 import { trapFocus } from "../components/focus";
 import { Overview } from "../features/overview/Overview";
 import { RulesEditor } from "../components/RulesEditor";
@@ -245,8 +246,8 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-palm">
-            <Palm />
+          <div className="sidebar-landscape">
+            <TropicalScene vertical />
           </div>
           <span className="demo-label">
             <span /> DEMO WORKSPACE
@@ -256,7 +257,7 @@ export default function App() {
             <br />
             Real clarity.
           </p>
-          <small>Generic palm illustration · provisional branding</small>
+          <small>Original illustration · provisional branding</small>
           <div className="sidebar-profile">
             <span className="avatar">TP</span>
             <div>
@@ -268,6 +269,15 @@ export default function App() {
       </aside>
       <div className="workspace">
         <header className="topbar">
+          <TropicalScene />
+          <div className="hero-copy">
+            <p>MAINTENANCE OPERATIONS</p>
+            <div className="hero-title">Maintenance Command Center</div>
+            <span>
+              Priorities, clarity, and follow-ups across your fictional
+              portfolio.
+            </span>
+          </div>
           <div className="breadcrumb">
             <button
               className="mobile-menu icon-button"
@@ -297,6 +307,25 @@ export default function App() {
             <span className="avatar light">TP</span>
           </div>
         </header>
+        <div
+          className="horizontal-nav"
+          role="group"
+          aria-label="Workspace shortcuts"
+        >
+          {tabs.map(({ name, icon: Icon }) => (
+            <button
+              key={name}
+              className={tab === name ? "active" : ""}
+              aria-label={`Go to ${name}`}
+              onClick={() => {
+                location.hash = name;
+              }}
+            >
+              <Icon size={17} />
+              {name}
+            </button>
+          ))}
+        </div>
         <main id="main-content" ref={mainRef} tabIndex={-1} className="main">
           <div className="page-heading">
             <div>

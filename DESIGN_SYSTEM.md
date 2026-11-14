@@ -28,3 +28,8 @@ Target WCAG 2.2 AA, keyboard operation, visible focus, logical headings, labeled
 
 ## Design preservation
 Implement reusable components and tokens. Capture approved screenshots with synthetic data. Make later API work behind the data layer without redesigning screens. Seek a product decision before substantial layout or brand changes.
+
+## Reference-led Overview redesign
+The user supplied a tropical maintenance-dashboard reference and requested a denser visual treatment of the existing application. Overview now uses an original SVG sunset/mountain/palm landscape in the navy sidebar and header, a serif command-center title, compact horizontal shortcuts, tinted KPI cards, and a desktop insights rail. The six documented navigation names remain unchanged. Tablet panels reflow to two columns; mobile panels stack and retain labeled scroll containers for wide tables. The exact palette and wordmark remain provisional rather than an approved logo reproduction.
+
+The Action Center incorporates the preserved Morning Briefing. The status donut, property heatmap, vendor workload, monthly creation/completion chart and sortable work-order table use the shared filtered snapshot. Color is supplemented by names and counts. The assistant is labeled Coming soon; no AI responses, performance percentages, source events or history are invented. Recent Activity explicitly states that no event log exists.

@@ -63,3 +63,6 @@ Read AGENTS.md and the seven other specifications before implementation. PROJECT
 Still needed for later phases: approved TPM assets/colors, portfolio timezone and thresholds, reviewed sanitized export headers/mappings, retention, protected hosting/access provider, importer permissions, CSV pipeline and optional verified read-only API access. No Supabase dependency or API access is required for this phase. Do not commit real CSVs, private reports, screenshots, credentials, contact details or entry codes.
 
 No application deployment is included. See REVIEW.md for review scope and verification evidence.
+
+## Tropical Overview presentation
+The reference-led visual redesign keeps the existing fictional dataset and data layer. Five color-coded KPIs, a status donut, vendor workload, property heatmap, compact sortable table, tropical header/sidebar and horizontal shortcuts complement the original dashboard controls. The right rail provides rule-based snapshot counts and working data-health/record actions. AI assistance, Rentvine access, report imports and a recent-activity event feed are explicitly unavailable. The artwork is original inline SVG, with provisional branding. Screenshots are generated as review artifacts outside source control.

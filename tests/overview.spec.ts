@@ -201,3 +201,70 @@ test("automated WCAG checks cover overview, rules and health", async ({
   await page.getByRole("button", { name: /Data health/ }).click();
   await scan();
 });
+
+test("redesigned panels reconcile drill-downs, sort records and keep future actions unavailable", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("heading", { name: "Portfolio overview" }).waitFor();
+  await page
+    .getByRole("button", { name: "Go to Vendors", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Vendors", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Go to Overview", exact: true })
+    .click();
+  const status = page.locator(".status-panel");
+  await status.getByRole("button", { name: "Open 8", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(9);
+  await page.keyboard.press("Escape");
+  await page
+    .locator(".vendor-panel")
+    .getByRole("button", { name: "Demo Fieldworks", exact: true })
+    .click();
+  await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(4);
+  await page.keyboard.press("Escape");
+  await page
+    .locator(".heatmap-panel")
+    .getByRole("button", { name: "Unknown property", exact: true })
+    .click();
+  await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(2);
+  await page.keyboard.press("Escape");
+  const table = page.locator(".lower-grid").getByRole("table");
+  await table.getByRole("button", { name: "Age", exact: false }).click();
+  await expect(
+    table.getByRole("columnheader", { name: /Age/ }),
+  ).toHaveAttribute("aria-sort", "ascending");
+  await table.getByRole("button", { name: "Age", exact: false }).click();
+  await expect(
+    table.getByRole("columnheader", { name: /Age/ }),
+  ).toHaveAttribute("aria-sort", "descending");
+  await expect(table.locator("tbody tr").first()).toContainText("43 days");
+  await table
+    .getByRole("button", { name: "Review details", exact: true })
+    .first()
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("Fictional work order");
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", {
+      name: "AI follow-ups · Coming soon",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: /Open Rentvine/ }),
+  ).toBeDisabled();
+  await expect(page.locator(".recent-activity")).toContainText(
+    "No activity history",
+  );
+  await page
+    .getByRole("textbox", { name: "Search work orders" })
+    .fill("no-such-record");
+  await expect(status.getByRole("img")).toHaveAccessibleName(/0 scoped/);
+  await expect(page.locator(".assistant-card").first()).toContainText(
+    "0 active over",
+  );
+});

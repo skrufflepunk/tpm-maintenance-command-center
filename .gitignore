@@ -156,3 +156,14 @@ snapshots/
 *.csv
 *.tsv
 private-assets/
+
+# Protected server data and operator credentials (never browser assets)
+private-data/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.key
+secrets/
+
+build-server/

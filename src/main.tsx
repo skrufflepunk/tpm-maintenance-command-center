@@ -22,3 +22,5 @@ import "./actions.css";
 import "./vendors.css";
 
 import "./insights.css";
+
+import "./settings.css";

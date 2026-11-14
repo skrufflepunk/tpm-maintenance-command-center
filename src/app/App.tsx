@@ -1,3 +1,5 @@
+import { DataSettings } from "../features/settings/DataSettings";
+import { displayReceiptTime } from "../domain/displayTime";
 import { Properties } from "../features/properties/Properties";
 import { Analytics } from "../features/analytics/Analytics";
 import { VendorWatch } from "../features/vendors/VendorWatch";
@@ -51,23 +53,37 @@ const tabs = [
 ];
 function currentTab() {
   const hash = decodeURIComponent(location.hash.slice(1));
-  return tabs.some((t) => t.name === hash) ? hash : "Overview";
+  return hash === "Data & Settings" || tabs.some((t) => t.name === hash)
+    ? hash
+    : "Overview";
 }
 export default function App() {
-  const [snapshot, setSnapshot] = useState<Snapshot | null>(null),
-    [health, setHealth] = useState<DataHealth | null>(null),
+  const [fixture, setSnapshot] = useState<Snapshot | null>(null),
+    [fixtureHealth, setHealth] = useState<DataHealth | null>(null),
     [error, setError] = useState("");
   const [tab, setTab] = useState(currentTab),
     [menu, setMenu] = useState(false),
     [filters, setFilters] = useState<Filters>(emptyFilters),
-    [rules, setRules] = useState(defaultRules);
+    [demoRules, setRules] = useState(defaultRules);
   const [ruleOpen, setRuleOpen] = useState(false),
     [healthOpen, setHealthOpen] = useState(false),
     [selected, setSelected] = useState<WorkOrder | null>(null),
     [drill, setDrill] = useState<{ title: string; rows: WorkOrder[] } | null>(
       null,
     );
-  const { source: explorerSource, csv, vendorSource } = useWorkspace();
+  const {
+    source: explorerSource,
+    csv,
+    vendorSource,
+    managed,
+    managedSourceId,
+    managedError,
+    session,
+  } = useWorkspace();
+  const rules =
+    managed && managedSourceId && explorerSource === "csv"
+      ? managed.settings.rules
+      : demoRules;
   const actionRef = useRef<{ openRecord: (id: string) => void }>(null);
   const explorerRef = useRef<{ openRecord: (id: string) => void }>(null);
   const [viewedAt] = useState(() => new Date().toISOString());
@@ -130,16 +146,25 @@ export default function App() {
         <p>No operational data was loaded.</p>
       </main>
     );
-  if (!snapshot || !health)
+  if (!fixture || !fixtureHealth)
     return (
       <main className="fatal" role="status">
-        Loading fictional portfolio…
+        Loading maintenance workspace…
       </main>
     );
+  const snapshot = explorerSource === "csv" && csv ? csv : fixture;
+  const health =
+    explorerSource === "csv"
+      ? {
+          issues: snapshot.qualitySummary,
+          latestAttempt: session.latestAttempt,
+          comparison: session.history().reason,
+        }
+      : fixtureHealth;
   const operations = tab !== "Overview";
   const explorerCsv = ["Vendors", "Properties", "Analytics"].includes(tab)
     ? vendorSource === "csv" || explorerSource === "csv"
-    : operations && explorerSource === "csv";
+    : explorerSource === "csv";
   const openActionRecord = (id: string) => {
     setTab("Action Center");
     location.hash = "Action Center";
@@ -154,7 +179,12 @@ export default function App() {
     (d) => d.datasetType === "workOrders",
   )!;
   const reference = dataset.reportAsOf ?? snapshot.importedAt;
-  const rows = selectOrders(snapshot, filters, rules, reference);
+  const effectiveRules = {
+    ...rules,
+    timezone:
+      snapshot.sourceMode === "csv" ? dataset.sourceTimezone : rules.timezone,
+  };
+  const rows = selectOrders(snapshot, filters, effectiveRules, reference);
   const setField = <K extends keyof Filters>(key: K, value: Filters[K]) =>
     setFilters((f) => ({ ...f, [key]: value }));
   const options = (values: string[]) =>
@@ -212,7 +242,7 @@ export default function App() {
     new Intl.DateTimeFormat("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
-      timeZone: rules.timezone,
+      timeZone: effectiveRules.timezone,
     }).format(new Date(value));
   return (
     <div className="app-shell">
@@ -266,15 +296,32 @@ export default function App() {
             </a>
           ))}
         </nav>
+        <a
+          className="settings-utility"
+          href="#Data & Settings"
+          aria-current={tab === "Data & Settings" ? "page" : undefined}
+        >
+          <Settings2 size={17} />
+          Data &amp; Settings
+        </a>
         <div className="sidebar-bottom">
           <div className="sidebar-landscape">
             <TropicalScene vertical />
           </div>
           <span className="demo-label">
-            <span /> {explorerCsv ? "CSV EVALUATION" : "DEMO WORKSPACE"}
+            <span />{" "}
+            {explorerCsv
+              ? managedSourceId
+                ? "CSV REPORTS"
+                : "CSV EVALUATION"
+              : "DEMO WORKSPACE"}
           </span>
           <p>
-            {explorerCsv ? "Isolated CSV session." : "Fictional portfolio."}
+            {explorerCsv
+              ? managedSourceId
+                ? "Protected CSV workspace."
+                : "Local CSV evaluation."
+              : "Fictional portfolio."}
             <br />
             Read-only clarity.
           </p>
@@ -282,7 +329,12 @@ export default function App() {
           <div className="sidebar-profile">
             <span className="avatar">TP</span>
             <div>
-              TPM team<small>Read-only demonstration</small>
+              TPM team
+              <small>
+                {managed
+                  ? `Authenticated ${managed.user.role}`
+                  : "Read-only demonstration"}
+              </small>
             </div>
             <ShieldCheck size={16} />
           </div>
@@ -296,7 +348,9 @@ export default function App() {
             <div className="hero-title">Maintenance Command Center</div>
             <span>
               {explorerCsv
-                ? "Read-only CSV evaluation · session memory only."
+                ? managedSourceId
+                  ? "Protected CSV reports · read-only operational views."
+                  : "Read-only CSV evaluation · session memory only."
                 : "Priorities, clarity, and follow-ups across your fictional portfolio."}
             </span>
           </div>
@@ -359,10 +413,16 @@ export default function App() {
             </div>
             <button
               className="outline-button"
-              onClick={() => setRuleOpen(true)}
+              onClick={() => {
+                if (managed && explorerSource === "csv")
+                  location.hash = "Data & Settings";
+                else setRuleOpen(true);
+              }}
             >
               <Settings2 size={16} />
-              Demo rules
+              {managed && explorerSource === "csv"
+                ? "Protected rule settings"
+                : "Demo rules"}
             </button>
           </div>
           <div className="demo-notice">
@@ -370,9 +430,15 @@ export default function App() {
             <span>
               {explorerCsv ? (
                 <>
-                  <strong>CSV evaluation · session only.</strong> Imported
-                  records are separate from demo data. No server upload or
-                  Rentvine connection.
+                  <strong>
+                    {managedSourceId
+                      ? "Protected CSV reports."
+                      : "CSV evaluation · session only."}
+                  </strong>{" "}
+                  Imported records are separate from demo data.{" "}
+                  {managedSourceId
+                    ? "Authenticated server storage; no live Rentvine connection."
+                    : "No server upload or Rentvine connection."}
                 </>
               ) : (
                 <>
@@ -383,14 +449,40 @@ export default function App() {
               )}
             </span>
           </div>
+          {managedSourceId && managedError && (
+            <p className="settings-error" role="status">
+              {managedError} Last loaded source data may be stale.
+            </p>
+          )}
+          {snapshot.qualitySummary
+            .filter((issue) =>
+              ["NOT_IMPORTED", "CARRIED_RECORDS", "RETENTION_PRUNED"].includes(
+                issue.code,
+              ),
+            )
+            .map((issue) => (
+              <p key={issue.code} className="settings-error" role="status">
+                {issue.safeMessage}
+              </p>
+            ))}
           <div className="snapshot-meta" hidden={operations}>
             <span>
               <span className="status-dot" />
-              Fixed demo snapshot
+              {snapshot.sourceMode === "demo"
+                ? "Fixed demo snapshot"
+                : "Selected CSV workspace"}
             </span>
             <span>Report as of {showDate(reference)}</span>
-            <span>Loaded {showDate(snapshot.importedAt)} (synthetic)</span>
-            <span>{rules.timezone} · illustrative</span>
+            <span>
+              Loaded {displayReceiptTime(snapshot.importedAt)}
+              {snapshot.sourceMode === "demo" ? " (synthetic)" : ""}
+            </span>
+            <span>
+              {effectiveRules.timezone}
+              {snapshot.sourceMode === "demo"
+                ? " · illustrative"
+                : " · declared source timezone"}
+            </span>
           </div>
           <section
             className="filter-panel"
@@ -533,8 +625,16 @@ export default function App() {
               </div>
             )}
             <p className="filter-result" role="status">
-              {rows.length} of {snapshot.workOrders.length} fictional work
-              orders · {chips.length ? "Filtered scope" : "All sample records"}{" "}
+              {rows.length} of {snapshot.workOrders.length}{" "}
+              {snapshot.sourceMode === "demo"
+                ? "fictional work orders"
+                : "CSV work orders"}{" "}
+              ·{" "}
+              {chips.length
+                ? "Filtered scope"
+                : snapshot.sourceMode === "demo"
+                  ? "All sample records"
+                  : "All report records"}{" "}
               · filters apply to all work-order metrics
             </p>
           </section>
@@ -543,7 +643,7 @@ export default function App() {
             aria-label="Work Order Explorer workspace"
           >
             <WorkOrderExplorer
-              demo={snapshot}
+              demo={fixture}
               rules={rules}
               ref={explorerRef}
               key={`${explorerSource}:${explorerSource === "csv" ? csv?.id : snapshot.id}`}
@@ -556,7 +656,7 @@ export default function App() {
             <ActionCenter
               ref={actionRef}
               key={`${explorerSource}:${explorerSource === "csv" ? csv?.id : snapshot.id}`}
-              demo={snapshot}
+              demo={fixture}
               rules={rules}
               onOpenExplorer={openExplorerRecord}
             />
@@ -566,7 +666,7 @@ export default function App() {
             aria-label="Vendor Watch workspace"
           >
             <VendorWatch
-              demo={snapshot}
+              demo={fixture}
               rules={rules}
               onOpenExplorer={openExplorerRecord}
               onOpenAction={openActionRecord}
@@ -577,7 +677,7 @@ export default function App() {
             aria-label="Properties workspace"
           >
             <Properties
-              demo={snapshot}
+              demo={fixture}
               rules={rules}
               onOpenExplorer={openExplorerRecord}
             />
@@ -587,16 +687,17 @@ export default function App() {
             aria-label="Analytics workspace"
           >
             <Analytics
-              demo={snapshot}
+              demo={fixture}
               rules={rules}
               onOpenExplorer={openExplorerRecord}
             />
           </section>
+          {tab === "Data & Settings" && <DataSettings />}
           {tab === "Overview" && (
             <Overview
               snapshot={snapshot}
               rows={rows}
-              rules={rules}
+              rules={effectiveRules}
               reference={reference}
               health={health}
               setDrill={setDrill}
@@ -608,10 +709,14 @@ export default function App() {
             <span>
               <ShieldCheck size={14} />
               {operations
-                ? "Read-only evaluation · no source changes or messages"
-                : "Read-only demo · no imports, source changes, or messages"}
+                ? "Read-only workspace · no source changes or messages"
+                : snapshot.sourceMode === "demo"
+                  ? "Read-only demo · no imports, source changes, or messages"
+                  : "Read-only CSV view · no Rentvine changes or messages"}
             </span>
-            <span>Viewed {showDate(viewedAt)} · not source freshness</span>
+            <span>
+              Viewed {displayReceiptTime(viewedAt)} · not source freshness
+            </span>
           </footer>
         </main>
       </div>
@@ -630,7 +735,10 @@ export default function App() {
           title="Data health & provenance"
           onClose={() => setHealthOpen(false)}
         >
-          <span className="demo-pill">Demo data · partial coverage</span>
+          <span className="demo-pill">
+            {snapshot.sourceMode === "demo" ? "Demo data" : "CSV reports"} ·{" "}
+            {dataset.completeness} coverage
+          </span>
           <p>{dataset.reportScope.description}</p>
           <ul className="health-list">
             {health.issues.map((issue) => (
@@ -688,10 +796,10 @@ export default function App() {
           </div>
           <p className="muted">
             Work-order freshness threshold: {rules.staleAfterHours} elapsed
-            hours. Fixed fictional timestamps are not live data. CSV evaluation
-            is available in Work Orders; live API access remains unavailable.
-            Schema {snapshot.schemaVersion} · mapping {snapshot.mappingVersion}{" "}
-            · rules {rules.rulesVersion}.
+            hours. Source and receipt timestamps are distinct; no live source
+            freshness is claimed. CSV evaluation is available in Work Orders;
+            live API access remains unavailable. Schema {snapshot.schemaVersion}{" "}
+            · mapping {snapshot.mappingVersion} · rules {rules.rulesVersion}.
           </p>
         </Modal>
       )}
@@ -699,7 +807,9 @@ export default function App() {
         <Modal title={drill.title} onClose={() => setDrill(null)}>
           <p className="muted">
             {drill.rows.length} supporting records · current filter scope ·
-            fictional demo data
+            {snapshot.sourceMode === "demo"
+              ? "fictional demo data"
+              : "selected CSV report data"}
           </p>
           <RecordTable
             rows={drill.rows}
@@ -712,7 +822,11 @@ export default function App() {
       )}
       {selected && (
         <Modal title={selected.number} onClose={() => setSelected(null)}>
-          <span className="demo-pill">Fictional work order</span>
+          <span className="demo-pill">
+            {snapshot.sourceMode === "demo"
+              ? "Fictional work order"
+              : "Read-only CSV work order"}
+          </span>
           <h3 className="detail-title">{selected.summaryRedacted}</h3>
           <dl className="record-details">
             {Object.entries({
@@ -739,9 +853,9 @@ export default function App() {
                 ? `${selected.completedAt.value} (${selected.completedAt.precision} precision)`
                 : "Unknown",
               Age: isActive(selected)
-                ? age(selected, reference, rules) === null
+                ? age(selected, reference, effectiveRules) === null
                   ? "Unknown"
-                  : `${age(selected, reference, rules)} calendar days`
+                  : `${age(selected, reference, effectiveRules)} calendar days`
                 : "Not applicable",
               Provenance: `${selected.provenance} · ${snapshot.id}`,
             }).map(([key, value]) => (
@@ -752,8 +866,8 @@ export default function App() {
             ))}
           </dl>
           <p className="muted">
-            Rentvine link unavailable: synthetic record, no verified source URL.
-            This is a read-only detail view.
+            Rentvine link unavailable: no verified source URL. This is a
+            read-only detail view.
           </p>
         </Modal>
       )}

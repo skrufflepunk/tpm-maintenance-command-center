@@ -1,5 +1,17 @@
 # Normalized data schema
 
+## Phase 6 managed-source contracts
+
+Current shared types are in `src/data/managedTypes.ts`; parsers continue to use the original normalized WorkOrder/Snapshot/VendorDirectory contracts. `propertyCsv.ts` adds an explicitly mapped property directory with required stable property ID/name, optional permitted address and provenance. No native Rentvine header names or API fields are asserted.
+
+A SourceConfig has an opaque UUID, display name, account/scope/timezone, explicit approval, snapshot/upsert behavior, revision, reviewed per-dataset mapping presets and a gated delivery schedule. Sources group work-order/vendor/property datasets but do not erase each dataset's report-as-of, import time, scope, completeness, counts or freshness. ID namespace equivalence must be explicitly verified; names are never keys. A property-only or vendor-only source has an explicit not-imported empty work-order snapshot.
+
+ManagedWorkspace returns current normalized records, compatible previous snapshot evidence when available, same-account vendor/property directories, carried/not-observed counts and per-dataset successful-import/check/revision/behavior metadata. Replay updates the successful check but not observation/import time. Source identities and account-scoped stable IDs prevent cross-source merges. Unknown statuses preserve raw mapped values while normalizing to unknown. Missing required IDs, duplicate IDs and malformed mappings prevent atomic commit; invalid optional dates remain unknown with validation warnings.
+
+Encrypted server-only entries retain the exact text of **mapped** source cells and normalized observations; unmapped columns are deliberately discarded. Raw source rows are never included in client workspace responses or safe logs. Viewer responses withhold vendor phone/email and mark contactsRestricted. Import summaries expose safe row counts, field/row validation messages, behavior, trigger and outcome; administrator-only audit records contain actor subject/time/event without raw CSV or secrets. Archives preserve absent records separately from active snapshot totals; upsert discloses last-known carried records and does not imply current observation of every row. Configured retention applies to active/archived records, observations, original values and history.
+
+No costs, appointments, unsupported approval timestamps, ratings or API-native relationships have been added. Earlier phase contracts remain valid except that source selection is unified across all six sections and operational server persistence is now implemented behind configuration. See [CSV guide](docs/CSV_ONLY.md).
+
 ## Contract conventions
 These are application contracts, not claims about Rentvine field names. Map actual export headers explicitly and version the mappings. IDs are opaque strings; scope every ID to a source account. Use source stable IDs where verified; work-order number is a candidate key only after uniqueness is confirmed within account/report scope. Do not merge by name/address alone. Required internal keys must be present for accepted rows; optional source values are null when unavailable. Preserve raw statuses in controlled storage; do not store arbitrary raw rows in client state or logs.
 

@@ -29,7 +29,7 @@ export function WorkOrderExplorer({
   rules: Rules;
   ref?: Ref<{ openRecord: (id: string) => void }>;
 }) {
-  const { session, csv, source, selectSource, loadCsv, clearCsv } =
+  const { session, csv, source, selectSource, loadCsv, clearCsv, managed } =
     useWorkspace();
   const [filters, setFilters] = useState<Filters>(emptyFilters),
     [approval, setApproval] = useState<string[]>([]),
@@ -156,7 +156,10 @@ export function WorkOrderExplorer({
           </button>
           <button
             className="text-button csv-backup"
-            onClick={() => setImportOpen(true)}
+            onClick={() => {
+              if (managed) location.hash = "Data & Settings";
+              else setImportOpen(true);
+            }}
           >
             <FileUp size={16} />
             Import CSV
@@ -170,7 +173,7 @@ export function WorkOrderExplorer({
               switchSource("demo");
             }}
           >
-            Clear CSV session
+            {managed ? "Select Demo · reports retained" : "Clear CSV session"}
           </button>
         )}
       </section>

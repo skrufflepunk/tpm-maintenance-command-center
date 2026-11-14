@@ -1,9 +1,25 @@
 # Architecture
 
+## Current Phase 6 architecture
+
+The implemented flow is React → authenticated same-origin Node HTTP API → shared normalized CSV parsers/domain rules → AES-256-GCM encrypted SQLite payloads on private durable disk. A single Node 24 instance is supported. `server/index.ts` is bundled to `build-server/index.mjs`; production serves both protected app assets and protected data endpoints. Vite is for synthetic development only. The synthetic OIDC test provider is excluded from the production entrypoint/bundle.
+
+`WorkspaceProvider` coordinates one selected Demo/CSV work-order source across all six sections and verified same-account vendor/property catalogs. Page filters remain independent. Managed selection is reauthorized server-side; source/identity/role changes reset source-bound child state. Authentication loss clears cached operational datasets even while Demo is selected. Browser localStorage/sessionStorage never persist operational data, identity tokens or drafts.
+
+`server/auth.ts` implements OIDC authorization code + S256 PKCE, state/nonce, discovered allowlisted endpoints/JWKS, signed token validation and an immutable-subject server role allowlist. Session cookies are HttpOnly/Secure/SameSite=None in production; CSRF tokens plus exact Origin checks protect writes. Every API request rechecks local role membership. Administrators manage sources, imports, configuration, retention and audit; viewers receive normalized records with vendor email/phone withheld. No proxy identity headers are trusted. Access is single-firm, not per-property.
+
+`server/management.ts` stages bounded previews with actor/expiry/source revision/dataset revision binding, commits atomically and keeps stable source/account-scoped IDs. A mapping/content digest makes repeat imports idempotent without claiming a new observation. Snapshot mode archives absent records; upsert carries disclosed last-known rows and disables comparable-snapshot history. Original mapped cells are encrypted server-only; unmapped columns are discarded. Namespace records include sources/settings, staged imports, observations, record archives, original mapped values, import history, audit and sessions. Configurable retention expires data rather than silently retaining it forever.
+
+`server/delivery.ts` processes private filesystem `*.ready.csv` files only after a reviewed mapping has successfully imported, an approved source schedule exists, and server operator configuration enables the private inbox. Gates default off. Private permissions, bounded UTF-8 reads and symlink rejection apply; failed validation retains the successful dataset and the input for operator review. This processes delivered files, not Rentvine report generation. One scheduled dataset per source is currently supported.
+
+`server/integrations/rentvine.ts` is an intentionally unavailable typed read adapter. No Rentvine endpoints, credentials, live requests or write operations are implemented. Server API configuration rejects activation pending ownership approval and verified external documentation. Production OIDC/storage secrets use private server mounts, never browser variables. See [deployment/security guide](docs/DEPLOYMENT.md), [CSV route](docs/CSV_ONLY.md) and [API route](docs/API_ROUTE.md).
+
+The earlier phase sections below are historical where they describe session-only persistence or Overview's independent demo; Phase 6 supersedes those limits. Actual protected hosting/Google Sites compatibility still needs real-environment testing.
+
 ## Separation of responsibilities
 React + TypeScript + Tailwind frontend → normalized repository interface → selected adapter (synthetic fixture, CSV, optional server-side Rentvine). Domain selectors and business rules are independent of adapters and UI. GitHub holds source and sanitized fixtures only. Use a protected hosting environment for operational data; a public static demo may contain synthetic data only.
 
-Proposed code organization: src/app (routing/layout), src/components, src/features (one directory per tab), src/domain (types/rules/selectors), src/data (repository/adapters/validation), src/config (public validated settings), and server/ (authentication, authorization, persistence and future source integration). This is a proposed layout; the documentation package does not contain an application scaffold.
+Proposed code organization: src/app (routing/layout), src/components, src/features (one directory per tab), src/domain (types/rules/selectors), src/data (repository/adapters/validation), src/config (public validated settings), and server/ (authentication, authorization, persistence and future source integration). This layout is now implemented; the phase sections below record its earlier proposed state.
 
 ## Repository contract
 Define getSnapshot(), getDataHealth(), previewImport(input, mapping, scope), commitImport(previewId), and getComparableChanges(snapshotId). These are internal application method names, not HTTP routes or Rentvine endpoints. Imports are available only to authorized importers. All adapters return DATA_SCHEMA.md contracts and capability/coverage metadata. UI never parses raw Rentvine payloads or contains source credentials. Capability gaps produce unavailable states rather than guessed values.

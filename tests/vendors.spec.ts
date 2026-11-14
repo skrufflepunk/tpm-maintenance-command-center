@@ -358,8 +358,8 @@ test("vendor CSV imports require mapped IDs, preserve isolation, safely join com
   await page
     .getByRole("button", { name: "Clear vendor CSV", exact: true })
     .click();
-  await expect(directory(page)).toContainText("Demo Fieldworks");
-  await expect(watch(page)).toContainText("Workload unavailable");
+  await expect(watch(page)).toContainText("No vendor directory loaded");
+  await expect(watch(page)).not.toContainText("Demo Fieldworks");
   await page
     .getByRole("combobox", { name: "Vendor workload source", exact: true })
     .selectOption("demo");

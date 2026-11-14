@@ -1,3 +1,4 @@
+import { useWorkspace } from "../../data/workspace/context";
 import { overviewKpis } from "../../domain/overviewKpis";
 import {
   StatusDonut,
@@ -51,6 +52,8 @@ export function Overview({
   setSelected,
   setHealthOpen,
 }: Props) {
+  const { session, source } = useWorkspace();
+  const comparable = source === "csv" && session.history().comparable;
   const active = rows.filter(isActive),
     queue = sortQueue(
       rows.filter((w) => reasons(w, reference, rules).length > 0),
@@ -147,7 +150,11 @@ export function Overview({
               <Clock3 size={13} />
               Rules-based guidance · proposed thresholds
             </span>
-            <span>Comparison unavailable — first snapshot</span>
+            <span>
+              {comparable
+                ? "Comparable load evidence available in Analytics"
+                : "Comparison unavailable — first snapshot"}
+            </span>
             <button onClick={() => setHealthOpen(true)}>
               {health.issues.length} data-health notices{" "}
               <ArrowRight size={13} />
@@ -443,6 +450,8 @@ export function Overview({
         </div>
       </div>
       <AssistantPanel
+        snapshot={snapshot}
+        historyAvailable={comparable}
         rows={rows}
         rules={rules}
         reference={reference}

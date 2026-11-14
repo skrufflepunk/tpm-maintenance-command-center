@@ -1,5 +1,17 @@
 # TPM Maintenance Command Center — Project
 
+## Current release — Phase 6
+
+Phases 1–5 are the completed baseline (`a177e1f`). Phase 6 adds a protected CSV operating foundation without requiring Rentvine API approval. **All six sections, including Overview, use the same selected Demo or CSV work-order workspace.** Vendor/property reports retain separate provenance but share that workspace's account and source mode; verified scoped identifiers are required for joins. This supersedes earlier phases' independent Overview/vendor selection behavior described in the historical delivery notes below.
+
+Data & Settings is a separate utility link, preserving exactly six main tabs. Manual work-order, vendor and property CSV mapping/preview/validation works in local synthetic/redacted evaluation and, with the protected server configured, as authenticated administrator imports into encrypted durable storage. Snapshot replacement archives absent rows without inferring closure; incremental upsert retains disclosed last-known rows. Original mapped values, import/audit history, retention and freshness are tracked server-side. Vendor contact fields are restricted to administrators.
+
+The protected Node 24 server implements OIDC staff sign-in, server-side administrator/viewer authorization, CSRF, secure cookies, encrypted SQLite storage and deny-by-default framing. Actual identity/hosting/storage/retention/report permissions must be configured and approved before operational use. Local browser tests use a synthetic identity provider and synthetic reports only. Optional private filesystem ingestion processes already-delivered reports only when both operator and administrator gates are enabled; it does not generate Rentvine reports.
+
+Rentvine API mode is disabled. Public documentation retrieval was blocked in this environment; endpoints, authentication, native fields, pagination, quotas and read scopes remain unverified. A typed server-only interface explicitly rejects activation; no live credentials or requests are used. Real hosting/Google Sites authentication and cookie compatibility are unverified. See [Phase 6 review](PHASE6_REVIEW.md) and [verification status](docs/VERIFICATION_STATUS.md) for implementation versus external prerequisites. No merge or public deployment is authorized.
+
+The phase sections below document delivery history; current Phase 6 requirements take precedence where source selection or persistence changed.
+
 ## Purpose
 Provide an internal maintenance command center that helps TPM staff identify follow-ups, understand portfolio health, find vendors, and inspect maintenance trends. Rentvine remains the authoritative system of record. All operational changes happen in Rentvine.
 

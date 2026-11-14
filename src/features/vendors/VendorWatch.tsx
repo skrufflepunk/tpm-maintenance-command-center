@@ -51,6 +51,7 @@ export function VendorWatch({
   onOpenAction,
 }: Props) {
   const {
+    managed,
     source,
     csv,
     vendorSource,
@@ -104,10 +105,16 @@ export function VendorWatch({
           </select>
         </label>
         <div className="source-buttons">
-          <button className="text-button" onClick={() => setImportOpen(true)}>
+          <button
+            className="text-button"
+            onClick={() => {
+              if (managed) location.hash = "Data & Settings";
+              else setImportOpen(true);
+            }}
+          >
             Import vendor CSV
           </button>
-          {vendorCsv && (
+          {vendorCsv && !managed && (
             <button className="text-button" onClick={clearVendorCsv}>
               Clear vendor CSV
             </button>
@@ -832,8 +839,12 @@ function VendorProfile({
               v.categories.map((id) => specialty(id, directory)).join(", ") ||
               "Unavailable",
             "Active status": status(v.active),
-            "Business email": v.businessEmail ?? "Not recorded",
-            "Business phone": v.businessPhone ?? "Not recorded",
+            "Business email": v.contactsRestricted
+              ? "Restricted to administrators"
+              : (v.businessEmail ?? "Not recorded"),
+            "Business phone": v.contactsRestricted
+              ? "Restricted to administrators"
+              : (v.businessPhone ?? "Not recorded"),
             State: v.state ?? "Not recorded",
             "Liability insurance expiration": v.liabilityInsuranceExpiration
               ? `${v.liabilityInsuranceExpiration.value} (${v.liabilityInsuranceExpiration.precision})`

@@ -85,6 +85,15 @@ export class CsvSession {
     this.revision++;
     this.latestAttempt = "CSV session cleared.";
   }
+  hydrate(current: Snapshot, previous: Snapshot | null) {
+    this.discardPreview();
+    this.current = structuredClone(current);
+    this.previous = previous ? structuredClone(previous) : null;
+    this.digest = "";
+    this.revision++;
+    this.latestAttempt =
+      "Protected server snapshot loaded; no browser persistence.";
+  }
   observationPair() {
     return this.history().comparable && this.previous && this.current
       ? {

@@ -1,5 +1,17 @@
 # Features and acceptance criteria
 
+## Current Phase 6 behavior
+
+All six existing workspaces consume the same selected Demo/CSV work-order source; Overview no longer remains an independent demo after CSV selection. Vendor/property catalogs keep dataset provenance and only join on verified same-account scoped identifiers. Fictional and operational records never mix. Each page retains its existing independently labeled filters, drills, rules and copy-only templates.
+
+Data & Settings is a sidebar utility outside the six main tabs. It offers Demo/CSV selection, disabled API mode, source approval and snapshot/upsert configuration, three separate report mappings/previews, validation failures/duplicates, import history, data-health counts/as-of/load/check times and configurable rule/review/freshness/retention policies. Receipt/audit display uses Mexico City; source-date calculations keep their declared timezone. Missing fields/statuses remain unknown, and vendor-only/property-only CSV workspaces show no imported work orders rather than borrowing demo records.
+
+With authenticated server configuration, administrator operations persist approved records, original mapped source values and safe audit history in encrypted storage. Viewer imports/configuration/audit are forbidden server-side and vendor email/phone are withheld. Signed-out operational access is denied. Local synthetic/redacted evaluation remains memory-only. Import previews are bounded, actor-bound, expiring and revision-checked; failures preserve the last successful dataset. Identical imports do not create duplicate records or artificial comparison history. Full snapshots archive absent rows; incremental updates disclose retained last-known rows without inferring closure or response.
+
+Optional authorized filesystem processing requires operator and administrator gates, reviewed saved mappings and an explicit interval. It does not request or generate reports from Rentvine. API mode remains Not configured with secure server setup instructions: no credential form, enable bypass, fabricated endpoint or live connection. Existing recommendations stay rules-based; messages stay editable and copy-only.
+
+See [verification status](docs/VERIFICATION_STATUS.md) for implemented/configuration-required/blocked/planned distinctions. Earlier phase sections below preserve release history; their independent Overview/vendor or session-only statements are superseded by Phase 6.
+
 ## Shared behavior
 All six tabs consume the same normalized snapshot and business-rule functions. Display demo/CSV/API mode, report-as-of and import time, scope, and quality warnings. Shared filters are property, mapped status, vendor (including Unknown), category, priority, created-date range, and aging bucket where applicable. Combine filters with AND; selections within one filter use OR. Text search is case-insensitive over work-order number, redacted summary, and property label. Use explicit “Unknown” selections. Detail navigation preserves filters; Clear all resets them. Unsupported filters show an explanation rather than silently doing nothing.
 

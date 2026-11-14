@@ -1,5 +1,10 @@
 export type Status =
-  "open" | "in_progress" | "on_hold" | "completed" | "cancelled" | "unknown";
+  | "open"
+  | "in_progress"
+  | "on_hold"
+  | "completed"
+  | "cancelled"
+  | "unknown";
 export type Priority = "urgent" | "high" | "normal" | "low" | "unknown";
 export type Coverage =
   | "present"
@@ -50,6 +55,7 @@ export interface Vendor {
   displayName: string;
   categories: string[];
   active: boolean | null;
+  contactsRestricted?: boolean;
   vendorType?: string | null;
   businessEmail?: string | null;
   businessPhone?: string | null;
@@ -97,7 +103,12 @@ export interface Snapshot {
   qualitySummary: QualityIssue[];
 }
 export type Reason =
-  "active" | "urgent" | "pending" | "aged" | "unassigned" | "completed";
+  | "active"
+  | "urgent"
+  | "pending"
+  | "aged"
+  | "unassigned"
+  | "completed";
 export interface Rules {
   rulesVersion: string;
   timezone: string;

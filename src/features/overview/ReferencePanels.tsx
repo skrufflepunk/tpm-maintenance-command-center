@@ -106,7 +106,11 @@ export function PortfolioPanels({
         <table className="mini-table">
           <thead>
             <tr>
-              <th>Fictional vendor</th>
+              <th>
+                {snapshot.sourceMode === "demo"
+                  ? "Fictional vendor"
+                  : "Source vendor"}
+              </th>
               <th>Active</th>
               <th>On-time</th>
             </tr>
@@ -203,12 +207,15 @@ export function PortfolioPanels({
   );
 }
 export function AssistantPanel({
+  snapshot,
+  historyAvailable,
   rows,
   rules,
   reference,
   setDrill,
   onHealth,
-}: Pick<Props, "rows" | "rules" | "reference" | "setDrill"> & {
+}: Pick<Props, "snapshot" | "rows" | "rules" | "reference" | "setDrill"> & {
+  historyAvailable: boolean;
   onHealth: () => void;
 }) {
   const aged = rows.filter((w) => matchesReason(w, "aged", reference, rules));
@@ -251,8 +258,9 @@ export function AssistantPanel({
             </span>
           </button>
           <p className="rail-empty">
-            No comparable history. Stalled work and changes cannot be
-            determined.
+            {historyAvailable
+              ? "Comparable load evidence is available in Action Center and Analytics; this does not establish source inactivity."
+              : "No comparable history. Stalled work and changes cannot be determined."}
           </p>
           <button disabled className="future-primary">
             <Bot size={16} />
@@ -298,12 +306,17 @@ export function AssistantPanel({
           <Clock3 size={25} />
           <strong>No activity history</strong>
           <p>
-            This fixed fictional snapshot has no event log. Completion dates are
-            not an activity feed.
+            No verified source event log is supplied. Completion dates and
+            imports are not an operational activity feed.
           </p>
         </div>
       </section>
-      <p className="rail-caption">Read-only workspace · fictional data only</p>
+      <p className="rail-caption">
+        Read-only workspace ·{" "}
+        {snapshot.sourceMode === "demo"
+          ? "fictional data only"
+          : "selected CSV report data"}
+      </p>
     </aside>
   );
 }

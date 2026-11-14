@@ -284,6 +284,13 @@ export class VendorCsvSession implements VendorRepository {
   private digest = "";
   private generation = 0;
   private removed: string[] = [];
+  hydrate(directory: VendorDirectory) {
+    this.generation++;
+    this.staged = null;
+    this.current = structuredClone(directory);
+    this.digest = "";
+    this.removed = [];
+  }
   getDirectory() {
     return this.current ? structuredClone(this.current) : null;
   }

@@ -404,7 +404,7 @@ test("Properties and Analytics share CSV work orders, retain invalid-import roll
     page
       .getByRole("button", { name: /Open Work Orders/ })
       .locator(".kpi-value"),
-  ).toContainText("14");
+  ).toContainText("2");
   await navigate(page, "Properties");
   await page
     .getByRole("combobox", {

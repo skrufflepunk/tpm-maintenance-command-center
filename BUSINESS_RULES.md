@@ -1,5 +1,18 @@
 # Business rules
 
+## Phase 6 source, retention and access rules
+
+1. One selected work-order source drives all six sections, including Overview. Demo and CSV never merge. Independent page filters remain unchanged. Catalog joins require same mode/account plus verified stable-ID namespace; unresolved IDs remain explicit.
+2. Aging, approval, follow-up, property review and scorecard formulas remain the shared rules below. Managed CSV uses administrator-configured validated policies. Date-only and timestamp precision stay separate; CSV calculations use declared report timezone. Configuration timezone never silently reinterprets imported dates. Receipt/audit display is Mexico City and is not the source calculation clock.
+3. Full-snapshot mode uses the new observed set for current totals and archives missing IDs without declaring closure/deletion. Upsert applies incoming stable-ID updates, carries missing prior rows with explicit last-known coverage warnings, and disables prior-snapshot comparisons. Account/scope/mapping compatibility is checked before upsert. No event, response, appointment or approval duration is inferred.
+4. Exact content/mapping replays do not duplicate rows or generate a second observation; successful-check time may advance while report-as-of/import time stays unchanged. Freshness follows supplied report time (or disclosed load fallback), never a replay pretending to refresh source facts. Work-order/vendor/property stale thresholds are configurable independently.
+5. Previews expire after 20 minutes and bind actor, source revision and dataset revision. Concurrent/stale/foreign previews are rejected; failed validation or transactional storage failure retains the last successful dataset. Duplicate stable IDs block commit. Unknown enum values remain unknown; missing facts never become fabricated zero/false/completion values.
+6. Scheduled delivery defaults off and requires approved source, successful reviewed mapping, operator filesystem gate and administrator schedule (5–10080 minutes). It processes already-delivered protected files only; no Rentvine generation/sending is assumed. One dataset schedule per source is implemented.
+7. Retention is administrator-only and bounded/validated. Expired current datasets, previous observations, archives/original mapped values and import/audit entries are pruned rather than silently kept indefinitely. Backups have a separate operator policy. No source record is changed/deleted in Rentvine.
+8. Operational records require an authenticated server session. Administrators control source approval/imports/configuration/retention/API setup/audit. Viewers cannot perform those operations; vendor email/phone is masked server-side. Eight-hour absolute sessions re-evaluate local subject role each request; provider-wide continuous revocation is not implemented. API activation stays rejected until separately authorized and documented. All drafts remain copy-only.
+
+These rules supersede historical phase statements about independent Overview/vendor selection and memory-only operational persistence. No missing data, quality score, financial value or unsupported performance metric has been invented.
+
 ## Authority and time basis
 Rentvine is authoritative. The dashboard derives read-only observations from imported data. All cards, queues, charts, and briefings use the same pure rule functions and rulesVersion. Use a portfolio timezone confirmed by TPM; California scheduling in the conversation is a proposal and does not establish the portfolio timezone. Display source report-as-of, import time, and browser viewing time separately. If report-as-of is unknown, label calculations using import time as an explicit fallback.
 

@@ -55,6 +55,7 @@ export function joinCompatible(
   return !!(
     directory &&
     data &&
+    data.mappingVersion !== "not-imported" &&
     directory.verifiedIdentifiers &&
     directory.sourceMode === snapshot.sourceMode &&
     directory.dataset.sourceAccountId === data.sourceAccountId

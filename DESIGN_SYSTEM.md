@@ -1,5 +1,13 @@
 # Design system
 
+## Phase 6 Data & Settings presentation
+
+Preserve the existing navy sidebar, original tropical artwork, compact header and exactly six main navigation labels. Data & Settings is a secondary utility link below those destinations, not a seventh main tab. Its compact source/access strip, three capability summaries, dataset health/history tables, explicit mapping/preview dialogs and administrator forms reuse existing semantic tokens, native focus-contained dialogs, text-and-color validation and page-level scrolling.
+
+Distinguish fictional/local evaluation, authenticated CSV and unavailable API modes visibly. Show administrator/viewer capabilities without exposing secrets or implying API activation. Reports keep source-as-of separate from receipt/check times; receipt/audit times display Mexico City with original ISO evidence available. Empty, expired, unapproved, failed and inaccessible sources need explicit recoverable states. All six workspaces now show the same selected source label, including Overview.
+
+Maintain desktop 1366/1440/1920 and local 1060×620 iframe usability, keyboard interaction and basic narrow reflow. No dedicated mobile feature development or new public deployment is included. Framing defaults to denied; real protected Google Sites/cookie behavior is an external verification step, not a visual assurance. Earlier phase independent-source descriptions are historical.
+
 ## Visual direction
 An understated, polished TPM command center: deep navy navigation, blue interactive accents, calm neutral surfaces, readable tables, and restrained palm imagery. Use approved TPM logo/palm assets when available; use a generic decorative palm placeholder clearly identified during development until then. Do not infer logo rights, brand hex values, or an exact prior screenshot layout from this document.
 

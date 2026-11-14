@@ -128,7 +128,7 @@ test("Explorer filters, KPIs, sorting, pagination, details and keyboard access w
     ).violations,
   ).toEqual([]);
 });
-test("CSV preview loads an isolated workspace, rejects duplicate IDs, and retains Overview demo data", async ({
+test("CSV preview loads the unified workspace, rejects duplicate IDs, and updates Overview", async ({
   page,
 }) => {
   await start(page);
@@ -182,7 +182,7 @@ test("CSV preview loads an isolated workspace, rejects duplicate IDs, and retain
     page
       .getByRole("button", { name: /Open Work Orders/ })
       .locator(".kpi-value"),
-  ).toContainText("14");
+  ).toContainText("1");
   await navigate(page, "Work Orders");
   await expect(page.getByRole("status")).toContainText("2 of 2 records");
   await upload(page, file("New", true));

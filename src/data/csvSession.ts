@@ -85,6 +85,14 @@ export class CsvSession {
     this.revision++;
     this.latestAttempt = "CSV session cleared.";
   }
+  observationPair() {
+    return this.history().comparable && this.previous && this.current
+      ? {
+          previous: structuredClone(this.previous),
+          current: structuredClone(this.current),
+        }
+      : null;
+  }
   history(): SessionHistory {
     const a = this.previous,
       b = this.current,

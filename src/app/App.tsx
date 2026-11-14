@@ -1,3 +1,5 @@
+import { ActionCenter } from "../features/action-center/ActionCenter";
+import { useWorkspace } from "../data/workspace/context";
 import { WorkOrderExplorer } from "../features/work-orders/WorkOrderExplorer";
 import { TropicalScene } from "../components/TropicalScene";
 import { trapFocus } from "../components/focus";
@@ -64,7 +66,8 @@ export default function App() {
     [drill, setDrill] = useState<{ title: string; rows: WorkOrder[] } | null>(
       null,
     );
-  const [explorerSource, setExplorerSource] = useState<"demo" | "csv">("demo");
+  const { source: explorerSource, csv } = useWorkspace();
+  const explorerRef = useRef<{ openRecord: (id: string) => void }>(null);
   const [viewedAt] = useState(() => new Date().toISOString());
   const mainRef = useRef<HTMLElement>(null),
     initialNavigation = useRef(true);
@@ -131,7 +134,13 @@ export default function App() {
         Loading fictional portfolio…
       </main>
     );
-  const explorerCsv = tab === "Work Orders" && explorerSource === "csv";
+  const operations = tab === "Work Orders" || tab === "Action Center";
+  const explorerCsv = operations && explorerSource === "csv";
+  const openExplorerRecord = (id: string) => {
+    setTab("Work Orders");
+    location.hash = "Work Orders";
+    explorerRef.current?.openRecord(id);
+  };
   const dataset = snapshot.datasets.find(
     (d) => d.datasetType === "workOrders",
   )!;
@@ -301,7 +310,7 @@ export default function App() {
               {explorerCsv ? "CSV session" : "Demo data"}
             </span>
             <button
-              hidden={tab === "Work Orders"}
+              hidden={operations}
               className="health-button"
               onClick={() => setHealthOpen(true)}
             >
@@ -357,7 +366,7 @@ export default function App() {
               )}
             </span>
           </div>
-          <div className="snapshot-meta" hidden={tab === "Work Orders"}>
+          <div className="snapshot-meta" hidden={operations}>
             <span>
               <span className="status-dot" />
               Fixed demo snapshot
@@ -368,7 +377,7 @@ export default function App() {
           </div>
           <section
             className="filter-panel"
-            hidden={tab === "Work Orders"}
+            hidden={operations}
             aria-label="Shared work-order filters"
           >
             <div className="filter-top">
@@ -519,10 +528,22 @@ export default function App() {
             <WorkOrderExplorer
               demo={snapshot}
               rules={rules}
-              onSourceChange={setExplorerSource}
+              ref={explorerRef}
+              key={`${explorerSource}:${explorerSource === "csv" ? csv?.id : snapshot.id}`}
             />
           </section>
-          {tab === "Work Orders" ? null : tab !== "Overview" ? (
+          <section
+            hidden={tab !== "Action Center"}
+            aria-label="Action Center workspace"
+          >
+            <ActionCenter
+              key={`${explorerSource}:${explorerSource === "csv" ? csv?.id : snapshot.id}`}
+              demo={snapshot}
+              rules={rules}
+              onOpenExplorer={openExplorerRecord}
+            />
+          </section>
+          {operations ? null : tab !== "Overview" ? (
             <Panel
               title={`${tab} is coming in a later phase`}
               eyebrow="PHASE 1 · NAVIGATION PREVIEW"
@@ -556,7 +577,7 @@ export default function App() {
           <footer className="page-footer">
             <span>
               <ShieldCheck size={14} />
-              {tab === "Work Orders"
+              {operations
                 ? "Read-only evaluation · no source changes or messages"
                 : "Read-only demo · no imports, source changes, or messages"}
             </span>

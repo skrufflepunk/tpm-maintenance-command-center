@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { verifiedRecordUrl } from "../../config/sourceLinks";
 import type { Rules, Snapshot, WorkOrder } from "../../domain/types";
 import type { SessionHistory } from "../../data/csvSession";
@@ -11,6 +12,7 @@ export function WorkOrderDetails({
   reference,
   history,
   onClose,
+  children,
 }: {
   order: WorkOrder;
   snapshot: Snapshot;
@@ -18,6 +20,7 @@ export function WorkOrderDetails({
   reference: string;
   history: SessionHistory;
   onClose: () => void;
+  children?: ReactNode;
 }) {
   const sourceUrl = verifiedRecordUrl(w.sourceUrl);
   const date = (v: WorkOrder["createdAt"]) =>
@@ -73,13 +76,42 @@ export function WorkOrderDetails({
       </span>
       <h3 className="detail-title">Read-only work order details</h3>
       <dl className="record-details">
-        {Object.entries(fields).map(([key, value]) => (
-          <div key={key}>
-            <dt>{key}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
+        {Object.entries(fields)
+          .filter(
+            ([key]) =>
+              !children ||
+              [
+                "Property",
+                "Vendor",
+                "Status",
+                "Priority",
+                "Owner approval",
+                "Created",
+                "Completed",
+                "Age",
+              ].includes(key),
+          )
+          .map(([key, value]) => (
+            <div key={key}>
+              <dt>{key}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
       </dl>
+      {children}
+      {children && (
+        <details>
+          <summary>All normalized source fields</summary>
+          <dl className="record-details">
+            {Object.entries(fields).map(([key, value]) => (
+              <div key={key}>
+                <dt>{key}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      )}
       <details>
         <summary>Field coverage</summary>
         <dl className="record-details">

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useImperativeHandle } from "react";
+import type { Ref } from "react";
+import { useWorkspace } from "../../data/workspace/context";
 import { ArrowDownUp, ArrowRight, FileUp, ShieldCheck } from "lucide-react";
 import { MultiFilter } from "../../components/MultiFilter";
 import { Modal, Panel } from "../../components/ui";
-import { CsvSession } from "../../data/csvSession";
 import {
   age,
   bucketLabels,
@@ -22,15 +23,14 @@ import { WorkOrderDetails } from "./WorkOrderDetails";
 export function WorkOrderExplorer({
   demo,
   rules,
-  onSourceChange,
+  ref,
 }: {
   demo: Snapshot;
   rules: Rules;
-  onSourceChange: (source: "demo" | "csv") => void;
+  ref?: Ref<{ openRecord: (id: string) => void }>;
 }) {
-  const [session] = useState(() => new CsvSession()),
-    [csv, setCsv] = useState<Snapshot | null>(null),
-    [source, setSource] = useState<"demo" | "csv">("demo");
+  const { session, csv, source, selectSource, loadCsv, clearCsv } =
+    useWorkspace();
   const [filters, setFilters] = useState<Filters>(emptyFilters),
     [approval, setApproval] = useState<string[]>([]),
     [focus, setFocus] = useState<
@@ -82,6 +82,16 @@ export function WorkOrderExplorer({
           missing: [],
           newIds: [],
         };
+  useImperativeHandle(
+    ref,
+    () => ({
+      openRecord: (id: string) => {
+        const record = snapshot.workOrders.find((w) => w.id === id);
+        if (record) setSelected(record);
+      },
+    }),
+    [snapshot],
+  );
   const reset = () => {
     setFilters({ ...emptyFilters });
     setApproval([]);
@@ -89,8 +99,7 @@ export function WorkOrderExplorer({
     setRequested(1);
   };
   const switchSource = (next: "demo" | "csv") => {
-    setSource(next);
-    onSourceChange(next);
+    selectSource(next);
     reset();
     setSelected(null);
   };
@@ -157,8 +166,7 @@ export function WorkOrderExplorer({
           <button
             className="text-button"
             onClick={() => {
-              session.clear();
-              setCsv(null);
+              clearCsv();
               switchSource("demo");
             }}
           >
@@ -644,8 +652,9 @@ export function WorkOrderExplorer({
           timezone={rules.timezone}
           onClose={() => setImportOpen(false)}
           onLoad={(s) => {
-            setCsv(s);
-            switchSource("csv");
+            loadCsv(s);
+            reset();
+            setSelected(null);
           }}
         />
       )}

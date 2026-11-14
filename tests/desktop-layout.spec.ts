@@ -34,7 +34,11 @@ test("KPI quick filters scope the register, preserve context and reset paginatio
     await expect(page.getByRole("status")).toContainText(
       `${count} of 24 records`,
     );
-    await expect(page.getByText(/Page 1 of/)).toBeVisible();
+    await expect(
+      page
+        .getByRole("region", { name: "Work Order Explorer workspace" })
+        .getByText(/Page 1 of/),
+    ).toBeVisible();
     await expect(register.getByRole("row")).toHaveCount(
       Math.min(count, 10) + 1,
     );

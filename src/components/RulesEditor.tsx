@@ -17,8 +17,8 @@ export function RulesEditor({
     <Modal title="Demo rule settings" onClose={onClose}>
       <p className="muted">
         Proposed values for this demo session only. These are not approved
-        service levels. All dates use the illustrative {rules.timezone}{" "}
-        timezone.
+        service levels. Demo dates use the illustrative {rules.timezone}{" "}
+        timezone; CSV evaluation uses its declared report timezone.
       </p>
       <form
         onSubmit={(e) => {

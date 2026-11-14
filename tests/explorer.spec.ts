@@ -75,7 +75,11 @@ test("Explorer filters, KPIs, sorting, pagination, details and keyboard access w
     .getByRole("textbox", { name: "Search Explorer work orders" })
     .fill("juniper");
   await expect(page.getByRole("status")).toContainText("8 of 24");
-  await expect(page.getByText("Page 1 of 1", { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "Work Order Explorer workspace" })
+      .getByText("Page 1 of 1", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Clear Explorer filters" }).click();
   const approval = page.locator(".explorer .multi-filter").filter({
     has: page.locator("summary").filter({ hasText: "Owner approval" }),
@@ -153,6 +157,25 @@ test("CSV preview loads an isolated workspace, rejects duplicate IDs, and retain
   await page.getByRole("button", { name: "EVAL-101", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("CSV evaluation record");
   await expect(page.getByRole("dialog")).toContainText("fictional-evaluation");
+  await page.keyboard.press("Escape");
+  await navigate(page, "Action Center");
+  await expect(page.getByRole("status")).toContainText(
+    "1 eligible action items",
+  );
+  await expect(
+    page.getByRole("combobox", { name: "Action data source" }),
+  ).toHaveValue("csv");
+  await page.getByRole("button", { name: "EVAL-101", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("CSV evaluation record");
+  await page
+    .getByRole("button", {
+      name: "Open corresponding work order in Explorer",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("dialog").getByRole("heading", { name: "EVAL-101" }),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
   await navigate(page, "Overview");
   await expect(

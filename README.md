@@ -1,6 +1,6 @@
 # TPM Maintenance Command Center
 
-Phases 1 and 2 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; there is no live Rentvine connection, source mutation or messaging. Work Order Explorer can preview and load synthetic or approved redacted CSVs into an isolated in-memory evaluation session.
+Phases 1–3 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; there is no live Rentvine connection, source mutation or messaging. Work Order Explorer can preview and load synthetic or approved redacted CSVs into an isolated in-memory evaluation session.
 
 ## Run locally
 
@@ -17,7 +17,7 @@ Configuration is optional for this demo. `.env.example` documents the single sup
 
 ## Phase 1 behavior
 
-- Responsive navy/blue application shell with exactly six tabs. Overview and Work Order Explorer are implemented; the other four pages remain clearly labeled placeholders. Overview filters are preserved independently from Explorer filters.
+- Responsive navy/blue application shell with exactly six tabs. Overview, Work Order Explorer and Action Center are implemented; the other three pages remain clearly labeled placeholders. Overview filters are preserved independently from Explorer filters.
 - Morning Briefing, five KPI drill-downs, monthly creation/completion activity, interactive age/category breakdowns, deterministic follow-up queue, property summaries, completion durations, data health and read-only record details.
 - Search, multi-select property/status/vendor/category/priority/age filters, creation-date ranges, removable filter chips, clear-all and explicit empty states. Filter families combine with AND; choices within a family combine with OR.
 - All metrics and drill-downs use the same scoped records. Charts expose exact counts and keyboard-operable drill-downs; monthly activity also has an accessible table. Age/category counts remain readable as text.
@@ -98,4 +98,13 @@ npm run test:e2e
 
 The script fetches Chrome/Edge from official package manifests, preserves TLS verification, verifies each package SHA-256, and extracts runtimes outside the checkout under `/workspace/browser-cache`. `TPM_BROWSER_CACHE` can select another writable cache directory. Browser installation is optional for basic Chromium checks. Prior mobile coverage remains opt-in with `LEGACY_MOBILE_TESTS=1 npm run test:e2e -- --project=mobile`; no new mobile interface or routine mobile screenshots are part of this phase.
 
-`src/config/sourceLinks.ts` contains an intentionally empty verified-origin list. A future reviewed adapter must supply actual verified record URLs, and the account owner must verify the exact HTTPS origin before links are enabled. CSV never creates or imports arbitrary links. Empty, relative, non-HTTPS, credential-bearing and unapproved-origin links remain unavailable. This prepares a read-only action, not an API integration. Phase 3 has not started and requires user approval.
+`src/config/sourceLinks.ts` contains an intentionally empty verified-origin list. A future reviewed adapter must supply actual verified record URLs, and the account owner must verify the exact HTTPS origin before links are enabled. CSV never creates or imports arbitrary links. Empty, relative, non-HTTPS, credential-bearing and unapproved-origin links remain unavailable. This prepares a read-only action, not an API integration. The subsequent user request authorized Phase 3 Action Center development.
+
+## Phase 3 · Action Center
+Open **Action Center** for a daily rules-based operations queue. Its source selector is shared with Explorer: load/clear CSV in Explorer, then review that isolated snapshot in Action Center. Switching to demo never merges CSV rows, directories or drafts. Overview remains its own fictional demo.
+
+Five KPI cards filter unique work orders requiring follow-up, configured aging, pending approvals, explicit unassignment and scheduled review. Scheduling is explicitly Unavailable because the source contract has no appointment fields. Morning Briefing groups urgency, approvals, vendor coordination, aging and other observed-change follow-ups using exactly the same ActionItem set. Default ordering uses the proposed shared rule configuration; search, filters, sorting, pagination and record inspection remain read-only.
+
+Open a record or **Draft Follow-up** to inspect facts and recommendations, choose Owner/Tenant/Vendor, edit a natural plain-text template, and **Copy draft**. Nothing is sent. Edits are kept separately per recipient only while the panel is open and disappear when it closes or changes source. No names, addresses, contact records, AI integration or browser storage are needed. **Open corresponding work order in Explorer** opens the exact scoped record without losing the selected dataset.
+
+No-observed-change suggestions require sufficiently spaced, compatible retained CSV observations with known unchanged fields and stable coverage. The fixed demo has no prior pair, so this capability is unavailable there. This is not a complete activity history, a missed-appointment detector or evidence of a party failing to respond. Source scheduling, approval duration and full source activity remain unavailable. New action/template unit tests and desktop Chrome/Edge/iframe checks supplement all existing Phase 1/2 regression suites. No live Rentvine connection, external message, source write, merge or public deployment is included.

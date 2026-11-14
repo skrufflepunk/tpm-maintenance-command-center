@@ -58,9 +58,13 @@ test("dashboard reconciles counts, drills into records, and preserves filters ac
         exact: true,
       }),
     ).toBeVisible();
-    if (name !== "Work Orders")
+    if (name !== "Work Orders" && name !== "Action Center")
       await expect(page.getByRole("status")).toContainText("8 of 24");
-    if (name !== "Overview" && name !== "Work Orders")
+    if (
+      name !== "Overview" &&
+      name !== "Work Orders" &&
+      name !== "Action Center"
+    )
       await expect(
         page.getByText("This page is a labeled placeholder.", { exact: false }),
       ).toBeVisible();

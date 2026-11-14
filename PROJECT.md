@@ -32,3 +32,7 @@ Confirm approved TPM assets, CSV headers and report scope, property/unit identif
 
 ## Document authority
 PROJECT.md defines scope; DESIGN_SYSTEM.md defines presentation; FEATURES.md defines user behavior; DATA_SCHEMA.md defines normalized contracts; ARCHITECTURE.md defines components and security boundaries; BUSINESS_RULES.md defines calculations and decisions; AGENTS.md governs implementation; README.md explains use. Resolve conflicts explicitly and update affected files together.
+
+## Phase 1 implementation status
+
+The current implementation provides a React/TypeScript/Vite/Tailwind application shell and a functional synthetic-only Overview. Work Orders, Action Center, Vendors, Properties, and Analytics have navigation and explicit placeholders, as requested for Phase 1; the complete release criteria above still apply to later delivery. No operational data, CSV ingestion, API integration, authentication, deployment, or communications are enabled. Branding, timezone and rule defaults remain illustrative pending approval.

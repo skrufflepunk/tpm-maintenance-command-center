@@ -31,3 +31,9 @@ Use focused domain tests for boundaries, unknowns, date precision, comparison sc
 
 ## Configuration boundary
 .env.example is an illustrative future scaffold contract, not an active integration. VITE_ values are public build settings. Server variables are read only by server configuration, validated at startup and never serialized to the client. Keep rule values in a versioned validated configuration object shared by server/domain clients; environment values may seed it. Fail operational startup on missing required timezone/access settings. Auth provider, storage, source mappings, retention, exact brand values, and API configuration remain explicit implementation decisions.
+
+## Phase 1 implementation
+
+`src/domain` contains the typed Phase 1 subset of the normalized contracts, pure selectors and rules. `src/config/rules.ts` validates proposed defaults, including queue reason order. `src/data/repository.ts` defines the asynchronous repository boundary and returns defensive copies of the deterministic synthetic fixture. Unsupported modes and all import mutations fail closed; failed calls retain the prior fixture. Comparison capability is unavailable because no prior comparable snapshot exists. This refusal is not an implemented CSV preview/rollback pipeline.
+
+`src/features/overview` renders the shared filtered snapshot. Reusable filter, table, native modal and settings components live in `src/components`. Hash navigation preserves in-memory filters; settings reset on reload. Browser clients receive only fictional fixtures. There is no server or operational authorization in Phase 1: operational use must remain disabled until protected server-side access and storage are implemented and tested.

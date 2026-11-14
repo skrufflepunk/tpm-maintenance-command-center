@@ -147,3 +147,12 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Local browser checks and operational files
+playwright-report/
+test-results/
+private-imports/
+snapshots/
+*.csv
+*.tsv
+private-assets/

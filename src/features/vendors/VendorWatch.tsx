@@ -1,3 +1,4 @@
+import { VendorScorecard } from "./VendorScorecard";
 import { useState } from "react";
 import {
   ArrowDownUp,
@@ -721,6 +722,7 @@ function VendorWorkspace({
           </div>
         )}
       </Panel>
+      <VendorScorecard metrics={scoped} compatible={compatible} />
       <details className="vendor-coverage">
         <summary>Data coverage &amp; metric limits</summary>
         <p>

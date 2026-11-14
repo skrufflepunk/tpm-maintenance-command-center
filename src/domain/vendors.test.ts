@@ -9,6 +9,7 @@ import {
   joinCompatible,
   sortVendors,
   vendorKpis,
+  vendorReferenceLabel,
   vendorMetrics,
 } from "./vendors";
 import type { VendorDirectory } from "./vendors";
@@ -220,4 +221,41 @@ describe("vendor directory interactions", () => {
     ).toHaveLength(2);
     expect(m[0].vendor.categories).toEqual(["cat:0", "cat:1"]);
   });
+});
+
+it("preserves opaque unmatched references without URI decoding or invented identifiers", () => {
+  const w = {
+    ...demoSnapshot.workOrders[9],
+    vendorId: "opaque:reference:%invalid:part",
+    vendorAssignmentState: "assigned" as const,
+  };
+  expect(vendorReferenceLabel(w, null, false)).toBe(
+    "Vendor reference opaque:reference:%invalid:part · name unavailable",
+  );
+  expect(
+    vendorReferenceLabel(
+      { ...w, vendorAssignmentState: "unknown" },
+      null,
+      false,
+    ),
+  ).toBe("Unknown assignment");
+  expect(
+    vendorReferenceLabel(
+      { ...w, vendorAssignmentState: "unassigned" },
+      null,
+      false,
+    ),
+  ).toBe("Explicitly unassigned");
+});
+it("uses vendor names only under verified relationships and the same scoped identity/account", () => {
+  const d = directory(),
+    w = {
+      ...demoSnapshot.workOrders[9],
+      vendorAssignmentState: "assigned" as const,
+    };
+  expect(vendorReferenceLabel(w, d, true)).toBe("Demo Fieldworks");
+  expect(vendorReferenceLabel(w, d, false)).not.toContain("Demo Fieldworks");
+  expect(
+    vendorReferenceLabel({ ...w, sourceAccountId: "different" }, d, true),
+  ).not.toContain("Demo Fieldworks");
 });

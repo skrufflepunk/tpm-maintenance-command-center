@@ -18,6 +18,25 @@ export interface VendorDirectory {
   /** Explicit confirmation that vendor IDs share the work-order namespace. */
   verifiedIdentifiers: boolean;
 }
+/** References are opaque. Never decode/split an unresolved ID or infer a source identity. */
+export function vendorReferenceLabel(
+  w: WorkOrder,
+  directory: VendorDirectory | null,
+  compatible: boolean,
+) {
+  if (w.vendorAssignmentState === "unassigned") return "Explicitly unassigned";
+  if (w.vendorAssignmentState === "unknown" || !w.vendorId)
+    return "Unknown assignment";
+  const vendor = compatible
+    ? directory?.vendors.find(
+        (v) => v.id === w.vendorId && v.sourceAccountId === w.sourceAccountId,
+      )
+    : null;
+  return (
+    vendor?.displayName ||
+    `Vendor reference ${vendor?.sourceId ?? w.vendorId} · name unavailable`
+  );
+}
 export function demoDirectory(snapshot: Snapshot): VendorDirectory {
   return {
     id: snapshot.id,

@@ -3,7 +3,10 @@ import type { Snapshot } from "../../domain/types";
 import type { CsvSession } from "../csvSession";
 import type { VendorCsvSession } from "../vendorRepository";
 import type { VendorDirectory } from "../../domain/vendors";
+import type { ReviewSettings } from "../../config/reviewSettings";
 export interface EvaluationWorkspace {
+  reviewSettings: ReviewSettings;
+  updateReviewSettings: (settings: ReviewSettings) => void;
   vendorSession: VendorCsvSession;
   vendorCsv: VendorDirectory | null;
   vendorSource: "demo" | "csv";

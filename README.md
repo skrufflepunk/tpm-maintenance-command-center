@@ -1,6 +1,6 @@
 # TPM Maintenance Command Center
 
-Phases 1–4 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; there is no live Rentvine connection, source mutation or messaging. Work Order Explorer can preview and load synthetic or approved redacted CSVs into an isolated in-memory evaluation session.
+Phases 1–5 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; there is no live Rentvine connection, source mutation or messaging. Work Order Explorer can preview and load synthetic or approved redacted CSVs into an isolated in-memory evaluation session.
 
 ## Run locally
 
@@ -17,7 +17,7 @@ Configuration is optional for this demo. `.env.example` documents the single sup
 
 ## Phase 1 behavior
 
-- Responsive navy/blue application shell with exactly six tabs. Overview, Work Order Explorer, Action Center and Vendor Watch are implemented; the other two pages remain clearly labeled placeholders. Overview filters are preserved independently from Explorer filters.
+- Responsive navy/blue application shell with exactly six tabs. All six pages are implemented through Properties and Analytics. Overview filters are preserved independently from Explorer filters.
 - Morning Briefing, five KPI drill-downs, monthly creation/completion activity, interactive age/category breakdowns, deterministic follow-up queue, property summaries, completion durations, data health and read-only record details.
 - Search, multi-select property/status/vendor/category/priority/age filters, creation-date ranges, removable filter chips, clear-all and explicit empty states. Filter families combine with AND; choices within a family combine with OR.
 - All metrics and drill-downs use the same scoped records. Charts expose exact counts and keyboard-operable drill-downs; monthly activity also has an accessible table. Age/category counts remain readable as text.
@@ -120,4 +120,18 @@ To calculate CSV workload, first load the work-order report in Explorer, then in
 
 Profiles offer four editable vendor draft purposes: status update, appointment inquiry, estimate request and aging follow-up. Choose a verified active assignment, edit and copy. Aging drafts require the configured age threshold. Edits are local to the open profile and discarded on close/source change. Nothing is sent, dialed, uploaded or stored in the browser. Real operational contact access still requires server authorization, privacy review and protected storage; this phase permits synthetic/redacted evaluation only.
 
-Validation/review scope: [PHASE4_REVIEW.md](PHASE4_REVIEW.md). Properties and Analytics remain placeholders. No merge, live Rentvine integration or public deployment is included.
+Historical Phase 4 review scope: [PHASE4_REVIEW.md](PHASE4_REVIEW.md). Properties and Analytics were placeholders at that release. No merge, live Rentvine integration or public deployment is included.
+
+
+## Phase 5 · Properties & Analytics
+**Properties** shows every supplied property, including zero matching work orders, plus a separate Unknown relationship group. Search names/IDs/supplied addresses, filter work-order cohorts or review signals/workload, sort and paginate. Profiles show scoped metrics, category observations, supplied vendor associations, available dates and complete current-report history. Any retained comparable prior property rows are separate evidence: missing current rows are never inferred closed or added to current KPI totals. Exact current records open in Explorer. No addresses or source service history are invented.
+
+**Analytics** uses the same selected work-order source as Explorer/Action Center, with independent property/vendor/category and creation/completion-cohort date filters. KPI and chart counts open exact supporting records. Actual creation/completion dates supply observed monthly event counts; aging/category/property/vendor/approval/assignment breakdowns include unknowns explicitly. Mean/median completion durations have calendar/elapsed cohorts, samples and exclusions. Comparisons use the same scoped records and disclose limitations. Historical backlog is Unavailable without a compatible retained pair; with one, only the two actual import observations appear. Financial analytics remain Unavailable.
+
+Properties/Analytics source controls also select the independent vendor directory where relevant. CSV vendor names/comparisons require confirmed identifier namespace and matching account/source mode. CSV records never merge into demo data. Overview remains the original independent demo. Changing datasets resets source-bound filters/details; navigation within a source preserves page contexts.
+
+**Review thresholds** configures proposed property volume/aging/approval/unassigned/repeated-category counts. Repeated classifications do not prove recurring defects; these are not property risk ratings. The existing **Demo rules** still controls aging and core eligibility. **Vendors → Scorecard settings** configures visible measurements and the minimum eligible completion sample, independent of existing vendor metrics. Missing ratings show Not rated; appointment timeliness and numerical quality scores remain unavailable. Everything resets on reload.
+
+Follow-up eligibility/order is unchanged. Recommendations now distinguish pending owner decisions, vendor assignments and unknown coverage; supplied completion-date/active-status conflicts prompt verification rather than claims of closure. Editable vendor drafts reference only available facts and remain copy-only. Future financial reader types are defined without enabling cost ingestion, financial APIs, accounting privileges or fabricated spending.
+
+See [PHASE5_REVIEW.md](PHASE5_REVIEW.md) for review scope, validation and Phase 6 prerequisites. No merge, live Rentvine connection or public deployment is included.

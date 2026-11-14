@@ -60,21 +60,8 @@ test("dashboard reconciles counts, drills into records, and preserves filters ac
         exact: true,
       }),
     ).toBeVisible();
-    if (
-      name !== "Work Orders" &&
-      name !== "Action Center" &&
-      name !== "Vendors"
-    )
+    if (name === "Overview")
       await expect(page.getByRole("status")).toContainText("8 of 24");
-    if (
-      name !== "Overview" &&
-      name !== "Work Orders" &&
-      name !== "Action Center" &&
-      name !== "Vendors"
-    )
-      await expect(
-        page.getByText("This page is a labeled placeholder.", { exact: false }),
-      ).toBeVisible();
   }
   await page.getByRole("button", { name: "Clear all", exact: true }).click();
   await page

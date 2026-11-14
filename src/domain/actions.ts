@@ -1,7 +1,12 @@
+import { nextReviewAction } from "./nextAction";
 import { age, dateKey, localDate, isActive, reasons, sortQueue } from "./rules";
 import type { Rules, Snapshot, WorkOrder } from "./types";
 export type ActionReason =
-  "urgent" | "pending" | "aged" | "unassigned" | "no_change";
+  | "urgent"
+  | "pending"
+  | "aged"
+  | "unassigned"
+  | "no_change";
 export type ActionFocus = "all" | ActionReason | "scheduled";
 export interface ObservationPair {
   previous: Snapshot;
@@ -127,8 +132,7 @@ export function actionRecommendations(
           key,
           title: actionLabels.aged,
           fact: `Known active age is ${age(w, reference, r)} calendar days at ${reference}, strictly over the proposed ${r.agingNudgeDays}-day threshold.`,
-          recommendation:
-            "Check the latest work-order activity and consider contacting the responsible party for an update.",
+          recommendation: nextReviewAction(w, reference, r),
         };
       default:
         return {
@@ -146,8 +150,7 @@ export function actionRecommendations(
       key: "no_change",
       title: actionLabels.no_change,
       fact: observed,
-      recommendation:
-        "Verify the latest source activity before requesting a progress update. No missed visit or lack of response is inferred.",
+      recommendation: nextReviewAction(w, reference, r),
     });
   return recs;
 }

@@ -39,6 +39,7 @@ export interface Property {
   sourceAccountId: string;
   sourceId: string;
   displayName: string;
+  permittedAddress?: string | null;
   coverageKind: "master" | "inferred";
   provenance: string;
 }

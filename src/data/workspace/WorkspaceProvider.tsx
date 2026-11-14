@@ -1,3 +1,7 @@
+import {
+  defaultReviewSettings,
+  validateReviewSettings,
+} from "../../config/reviewSettings";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Snapshot } from "../../domain/types";
@@ -12,9 +16,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [vendorSession] = useState(() => new VendorCsvSession()),
     [vendorCsv, setVendorCsv] = useState<VendorDirectory | null>(null),
     [vendorSource, setVendorSource] = useState<"demo" | "csv">("demo");
+  const [reviewSettings, setReviewSettings] = useState(defaultReviewSettings);
   return (
     <WorkspaceContext
       value={{
+        reviewSettings,
+        updateReviewSettings: (settings) =>
+          setReviewSettings(validateReviewSettings(settings)),
         vendorSession,
         vendorCsv,
         vendorSource,

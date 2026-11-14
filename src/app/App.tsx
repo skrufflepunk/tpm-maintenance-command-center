@@ -1,3 +1,5 @@
+import { Properties } from "../features/properties/Properties";
+import { Analytics } from "../features/analytics/Analytics";
 import { VendorWatch } from "../features/vendors/VendorWatch";
 import { ActionCenter } from "../features/action-center/ActionCenter";
 import { useWorkspace } from "../data/workspace/context";
@@ -11,7 +13,6 @@ import { MultiFilter } from "../components/MultiFilter";
 import { useEffect, useRef, useState } from "react";
 import {
   Activity,
-  ArrowRight,
   BarChart3,
   Building2,
   ClipboardList,
@@ -23,11 +24,10 @@ import {
   SlidersHorizontal,
   Sparkles,
   Users,
-  Wrench,
   X,
   AlertCircle,
 } from "lucide-react";
-import { Modal, Palm, Panel } from "../components/ui";
+import { Modal, Palm } from "../components/ui";
 import { defaultRules } from "../config/rules";
 import { getRepository } from "../data/repository";
 import type { DataHealth } from "../data/repository";
@@ -136,12 +136,10 @@ export default function App() {
         Loading fictional portfolio…
       </main>
     );
-  const operations =
-    tab === "Work Orders" || tab === "Action Center" || tab === "Vendors";
-  const explorerCsv =
-    tab === "Vendors"
-      ? vendorSource === "csv" || explorerSource === "csv"
-      : operations && explorerSource === "csv";
+  const operations = tab !== "Overview";
+  const explorerCsv = ["Vendors", "Properties", "Analytics"].includes(tab)
+    ? vendorSource === "csv" || explorerSource === "csv"
+    : operations && explorerSource === "csv";
   const openActionRecord = (id: string) => {
     setTab("Action Center");
     location.hash = "Action Center";
@@ -354,7 +352,9 @@ export default function App() {
                       ? "Find vendors, review verified workload and prepare local follow-up drafts."
                       : tab === "Action Center"
                         ? "Review source-qualified priorities and prepare local follow-up drafts."
-                        : "A dedicated workspace is planned for a later phase."}
+                        : tab === "Properties"
+                          ? "Inspect source-qualified property maintenance and review signals."
+                          : "Explore available maintenance records, cohorts and observed trends."}
               </p>
             </div>
             <button
@@ -572,26 +572,27 @@ export default function App() {
               onOpenAction={openActionRecord}
             />
           </section>
-          {operations ? null : tab !== "Overview" ? (
-            <Panel
-              title={`${tab} is coming in a later phase`}
-              eyebrow="PHASE 1 · NAVIGATION PREVIEW"
-            >
-              <div className="placeholder">
-                <Wrench size={32} />
-                <p>
-                  This page is a labeled placeholder. Overview provides the
-                  working dashboard and supporting records.
-                </p>
-                <p className="muted">
-                  Your shared filters are preserved when navigating.
-                </p>
-                <a href="#Overview" className="primary">
-                  Return to Overview <ArrowRight size={16} />
-                </a>
-              </div>
-            </Panel>
-          ) : (
+          <section
+            hidden={tab !== "Properties"}
+            aria-label="Properties workspace"
+          >
+            <Properties
+              demo={snapshot}
+              rules={rules}
+              onOpenExplorer={openExplorerRecord}
+            />
+          </section>
+          <section
+            hidden={tab !== "Analytics"}
+            aria-label="Analytics workspace"
+          >
+            <Analytics
+              demo={snapshot}
+              rules={rules}
+              onOpenExplorer={openExplorerRecord}
+            />
+          </section>
+          {tab === "Overview" && (
             <Overview
               snapshot={snapshot}
               rows={rows}

@@ -1,3 +1,4 @@
+import { sourceCompletionConflict } from "./nextAction";
 import type { Snapshot, WorkOrder } from "./types";
 export const vendorPurposes = {
   status: "Request a status update",
@@ -16,7 +17,9 @@ export function vendorTemplate(
   )?.displayName;
   const subject = `work order ${order.number}${property ? ` at ${property}` : ""}`;
   const request = {
-    status: "Could you share the current status and any next steps?",
+    status: sourceCompletionConflict(order, snapshot)
+      ? "The report contains a completion date while its status is still active. Could you help verify the recorded completion and any remaining steps?"
+      : "Could you share the current status and any next steps?",
     appointment:
       "Could you confirm whether an appointment has been arranged and, if so, provide the date and time?",
     estimate:
@@ -24,5 +27,9 @@ export function vendorTemplate(
     aging:
       "We are reviewing older open work orders. Could you share the current progress and any next steps?",
   }[purpose];
-  return `Hello,\n\nI’m following up regarding ${subject}.${order.summaryRedacted ? `\n\nReported issue: ${order.summaryRedacted}` : ""}\n\n${request}\n\nThank you,\nTemecula Property Management`;
+  const approval =
+    order.approvalState === "pending"
+      ? "\n\nThe report lists owner approval as pending. Please let us know whether a decision is needed before any proposed next steps."
+      : "";
+  return `Hello,\n\nI’m following up regarding ${subject}.${order.summaryRedacted ? `\n\nReported issue: ${order.summaryRedacted}` : ""}\n\n${request}${approval}\n\nThank you,\nTemecula Property Management`;
 }

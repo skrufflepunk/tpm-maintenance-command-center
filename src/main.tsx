@@ -20,3 +20,5 @@ import "./desktop.css";
 import "./actions.css";
 
 import "./vendors.css";
+
+import "./insights.css";

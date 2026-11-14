@@ -25,3 +25,5 @@ Explorer's source selector separates demo and CSV records and resets its scope o
 ## Limits before operational use
 
 This is the documented isolated local evaluation workflow. It does not implement production authentication/importer authorization, private shared storage, approved retention or a verified Rentvine-native schema. No private operational reports should be loaded. Actual sanitized headers and reviewed account-specific mappings are still needed to validate a real export. Approval-request dates, full activity logs and vendor directories are not supplied, so unsupported fields/history/approval durations remain unavailable. The other four main pages remain placeholders.
+
+The subsequent desktop-first refinement pass is documented in [DESKTOP_REFINEMENTS_REVIEW.md](DESKTOP_REFINEMENTS_REVIEW.md). It replaces horizontal shortcuts with sidebar-only navigation, prioritizes seven register columns and adds KPI quick filters without changing CSV isolation or normalized source contracts.

@@ -312,30 +312,17 @@ export default function App() {
             <span className="avatar light">TP</span>
           </div>
         </header>
-        <div
-          className="horizontal-nav"
-          role="group"
-          aria-label="Workspace shortcuts"
-        >
-          {tabs.map(({ name, icon: Icon }) => (
-            <button
-              key={name}
-              className={tab === name ? "active" : ""}
-              aria-label={`Go to ${name}`}
-              onClick={() => {
-                location.hash = name;
-              }}
-            >
-              <Icon size={17} />
-              {name}
-            </button>
-          ))}
-        </div>
         <main id="main-content" ref={mainRef} tabIndex={-1} className="main">
           <div className="page-heading">
             <div>
               <p className="eyebrow">YOUR MAINTENANCE WORKSPACE</p>
-              <h1>{tab === "Overview" ? "Portfolio overview" : tab}</h1>
+              <h1>
+                {tab === "Overview"
+                  ? "Portfolio overview"
+                  : tab === "Work Orders"
+                    ? "Work Order Explorer"
+                    : tab}
+              </h1>
               <p className="muted">
                 {tab === "Overview"
                   ? "A clear view of what’s moving. A focused view of what needs you."

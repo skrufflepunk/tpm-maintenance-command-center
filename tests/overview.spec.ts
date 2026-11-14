@@ -1,3 +1,4 @@
+import { navigate } from "./navigation";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 test("dashboard reconciles counts, drills into records, and preserves filters across all tabs", async ({
@@ -48,7 +49,12 @@ test("dashboard reconciles counts, drills into records, and preserves filters ac
       .click();
     await expect(
       page.getByRole("heading", {
-        name: name === "Overview" ? "Portfolio overview" : name,
+        name:
+          name === "Overview"
+            ? "Portfolio overview"
+            : name === "Work Orders"
+              ? "Work Order Explorer"
+              : name,
         exact: true,
       }),
     ).toBeVisible();
@@ -203,20 +209,16 @@ test("automated WCAG checks cover overview, rules and health", async ({
   await scan();
 });
 
-test("redesigned panels reconcile drill-downs, sort records and keep future actions unavailable", async ({
+test("dashboard panels reconcile drill-downs, sort records and keep future actions unavailable", async ({
   page,
 }) => {
   await page.goto("/");
   await page.getByRole("heading", { name: "Portfolio overview" }).waitFor();
-  await page
-    .getByRole("button", { name: "Go to Vendors", exact: true })
-    .click();
+  await navigate(page, "Vendors");
   await expect(
     page.getByRole("heading", { name: "Vendors", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Go to Overview", exact: true })
-    .click();
+  await navigate(page, "Overview");
   const status = page.locator(".status-panel");
   await status.getByRole("button", { name: "Open 8", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(9);

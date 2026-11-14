@@ -52,9 +52,9 @@ npm test
 npm run test:e2e
 ```
 
-`build` runs strict TypeScript checking and the production Vite bundle. `test` runs domain and repository tests. `test:e2e` starts Vite automatically when needed and runs desktop/mobile Chromium tests, including count reconciliation, filters, all six navigation destinations, chart and record drill-downs, settings, data health, dialog keyboard behavior and automated WCAG scans. A 720 CSS-pixel viewport checks reflow equivalent to a 1440px desktop at 200% zoom.
+`build` runs strict TypeScript checking and the production Vite bundle. `test` runs domain and repository tests. `test:e2e` starts Vite automatically when needed and runs the desktop browser matrix, including count reconciliation, filters, all six navigation destinations, chart and record drill-downs, settings, data health, dialog keyboard behavior and automated WCAG scans. A 720 CSS-pixel viewport checks reflow equivalent to a 1440px desktop at 200% zoom.
 
-Browser tests use `/usr/bin/chromium` by default. If Chromium is installed elsewhere, set `CHROMIUM_PATH` to its executable. The cloud machine already supplies Chromium. Screenshots and any retained failure traces are written under ignored `test-results/`. There is no backend authentication to test; **do not use this demo for operational data**. Anonymous-access denial, production roles, private storage and Google Sites authentication remain prerequisites for any operational deployment.
+Browser tests use native Chrome when prepared, otherwise `/usr/bin/chromium`. Set `CHROME_PATH`, `EDGE_PATH` or `CHROMIUM_PATH` for installed executables. Edge joins the matrix when available. Screenshots and any retained failure traces are written under ignored `test-results/`. There is no backend authentication to test; **do not use this demo for operational data**. Anonymous-access denial, production roles, private storage and Google Sites authentication remain prerequisites for any operational deployment.
 
 ## Specifications and remaining decisions
 
@@ -65,7 +65,7 @@ Still needed for later phases: approved TPM assets/colors, portfolio timezone an
 No application deployment is included. See REVIEW.md for review scope and verification evidence.
 
 ## Tropical Overview presentation
-The reference-led visual redesign keeps the existing fictional dataset and data layer. Five color-coded KPIs, a status donut, vendor workload, property heatmap, compact sortable table, tropical header/sidebar and horizontal shortcuts complement the original dashboard controls. The right rail provides rule-based snapshot counts and working data-health/record actions. AI assistance, Rentvine access and a recent-activity event feed are explicitly unavailable. CSV evaluation is available through the Work Order Explorer. The artwork is original inline SVG, with provisional branding. Screenshots are generated as review artifacts outside source control.
+The reference-led visual redesign keeps the existing fictional dataset and data layer. Five color-coded KPIs, a status donut, vendor workload, property heatmap, compact sortable table, tropical header/sidebar and sidebar navigation complement the original dashboard controls. The right rail provides rule-based snapshot counts and working data-health/record actions. AI assistance, Rentvine access and a recent-activity event feed are explicitly unavailable. CSV evaluation is available through the Work Order Explorer. The artwork is original inline SVG, with provisional branding. Screenshots are generated as review artifacts outside source control.
 
 ## Phase 2 · Work Order Explorer
 Open **Work Orders** to search and sort the register, filter by property/status/vendor/category/priority/owner approval/created-date range/active age, inspect scoped summary cards and open read-only details. Pagination offers 10, 25 or 50 rows. Dates and ages sort as typed values; missing values stay last. Aging highlights follow the configurable rule; pending approval is highlighted only when explicitly supplied. Approval waiting time is unavailable without a request date. Details show normalized source fields, coverage and the available date/history evidence.
@@ -83,3 +83,19 @@ There are no verified Rentvine export headers or production source mappings in t
 New tests cover CSV quoted syntax/limits, unknowns, duplicate identity rejection, invalid dates, assignment coverage, transactional preview/commit, idempotency, stale candidates, scoped comparison/history, filters, typed sorting, pagination, source separation, record details and accessibility.
 
 Review scope and final Phase 2 validation evidence: [PHASE2_REVIEW.md](PHASE2_REVIEW.md).
+
+## Desktop-first Phase 2 refinements
+The approved design remains intact. The navy sidebar is the only primary navigation and stays visible during page scrolling; its navy background also covers the full document. Explorer now has one heading and seven priority columns, with secondary metadata in details and a sort selector. Interactive KPI buttons narrow the current register using existing rules; Reset KPI filter keeps other filters, and Clear Explorer filters resets everything. CSV import remains functional as a less prominent fallback.
+
+The default browser matrix targets 1366, 1440 and 1920px in Chrome (Chromium fallback), plus 1440px in Edge when installed. Tests include a local 1060×620 iframe to exercise a content viewport smaller than the browser. This does **not** establish protected Google Sites authentication/session/framing compatibility; the real portal must be tested before operational release. No cross-origin resize messaging, permissive production framing policy or authorization bypass is added.
+
+Optional native browser preparation on the Linux cloud machine (Python, curl, dpkg-deb required):
+
+```bash
+python3 scripts/prepare-desktop-browsers.py
+npm run test:e2e
+```
+
+The script fetches Chrome/Edge from official package manifests, preserves TLS verification, verifies each package SHA-256, and extracts runtimes outside the checkout under `/workspace/browser-cache`. `TPM_BROWSER_CACHE` can select another writable cache directory. Browser installation is optional for basic Chromium checks. Prior mobile coverage remains opt-in with `LEGACY_MOBILE_TESTS=1 npm run test:e2e -- --project=mobile`; no new mobile interface or routine mobile screenshots are part of this phase.
+
+`src/config/sourceLinks.ts` contains an intentionally empty verified-origin list. A future reviewed adapter must supply actual verified record URLs, and the account owner must verify the exact HTTPS origin before links are enabled. CSV never creates or imports arbitrary links. Empty, relative, non-HTTPS, credential-bearing and unapproved-origin links remain unavailable. This prepares a read-only action, not an API integration. Phase 3 has not started and requires user approval.

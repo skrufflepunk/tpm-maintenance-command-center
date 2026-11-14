@@ -1,3 +1,4 @@
+import { navigate } from "./navigation";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const file = (state = "New", duplicate = false) =>
@@ -153,17 +154,13 @@ test("CSV preview loads an isolated workspace, rejects duplicate IDs, and retain
   await expect(page.getByRole("dialog")).toContainText("CSV evaluation record");
   await expect(page.getByRole("dialog")).toContainText("fictional-evaluation");
   await page.keyboard.press("Escape");
-  await page
-    .getByRole("button", { name: "Go to Overview", exact: true })
-    .click();
+  await navigate(page, "Overview");
   await expect(
     page
       .getByRole("button", { name: /Open Work Orders/ })
       .locator(".kpi-value"),
   ).toContainText("14");
-  await page
-    .getByRole("button", { name: "Go to Work Orders", exact: true })
-    .click();
+  await navigate(page, "Work Orders");
   await expect(page.getByRole("status")).toContainText("2 of 2 records");
   await upload(page, file("New", true));
   await expect(

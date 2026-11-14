@@ -1915,33 +1915,6 @@ dialog .table-scroll {
   gap: 12px;
   box-shadow: 0 2px 10px #00214d12;
 }
-.horizontal-nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 16px;
-  background: #f9fbff;
-  border-bottom: 1px solid #d5deed;
-  overflow: auto;
-}
-.horizontal-nav button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  min-height: 35px;
-  padding: 6px 18px;
-  border-radius: 7px;
-  white-space: nowrap;
-  font-size: 11px;
-  font-weight: 650;
-  flex: 1;
-}
-.horizontal-nav button.active {
-  background: #005ae2;
-  color: white;
-  box-shadow: 0 2px 4px #005ae22b;
-}
 .main {
   max-width: 1800px;
   padding: 12px 16px;
@@ -2556,10 +2529,6 @@ th {
     margin-left: 185px;
     width: calc(100% - 185px);
   }
-  .horizontal-nav button {
-    padding: 6px 10px;
-    font-size: 10px;
-  }
   .dashboard-main {
     grid-template-columns: 1fr 1fr;
   }
@@ -2664,15 +2633,6 @@ th {
   }
   .topbar-actions .health-button {
     font-size: 0;
-  }
-  .horizontal-nav {
-    padding: 6px 10px;
-    gap: 5px;
-  }
-  .horizontal-nav button {
-    padding: 7px 10px;
-    font-size: 10px;
-    flex: none;
   }
   .main {
     padding: 10px;

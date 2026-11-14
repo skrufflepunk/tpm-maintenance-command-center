@@ -8,7 +8,7 @@ Provide an internal maintenance command center that helps TPM staff identify fol
 - Use React, TypeScript (proposed implementation choice), Tailwind CSS, and GitHub for source control. No Supabase dependency is needed for the initial version.
 - Use exactly six main tabs: Overview, Work Orders, Action Center, Vendors, Properties, Analytics.
 - Preserve TPM navy/blue styling and palm visuals. Approved artwork and exact brand color values still need to be supplied or verified.
-- Desktop-first responsive design, usable on phones and inside Google Sites.
+- Desktop-first development at 1366–1920px, with Google Sites iframe-aware layout and basic smaller-viewport reflow; no dedicated mobile feature development.
 - Read-only Rentvine access. Never create, edit, assign, approve, close, or delete Rentvine records from this application.
 - Filters, buttons, navigation, and charts must work. Unknown values stay unknown.
 
@@ -41,3 +41,6 @@ The current implementation provides a React/TypeScript/Vite/Tailwind application
 Work Orders now opens Work Order Explorer: searchable and sortable source-qualified records, property/status/vendor/category/priority/approval/creation-date/age filters, scoped KPIs, pagination and detailed read-only evidence. Shared rule settings drive aging highlights; explicit approval state drives pending highlights because approval-request dates are not supplied. “Overdue” remains a proposed follow-up threshold, not a verified service-level violation.
 
 CSV preview/validation supports explicit source column and enum mappings against DATA_SCHEMA.md; no actual Rentvine header contract has been supplied. The file must be synthetic or approved redacted evaluation data. Validated CSVs replace only an isolated in-memory CSV snapshot, never demo records. Overview continues using its independent demo dataset. Operational authentication, storage/retention, protected sharing, live integration and the other four pages remain future work.
+
+## Phase 2 final refinement gate
+Keep the approved design, with the navy sidebar as the only primary navigation. Prioritize desktop Chrome and Edge, test long-page scrolling at 1366/1440/1920px and size the layout against the iframe viewport, not an assumed full browser window. Explorer now has one heading, seven priority register columns and interactive KPI filters with visible reset. Secondary source metadata remains in record details and the sort selector. CSV remains an isolated evaluation fallback. A source record link stays unavailable until both a reviewed URL and a verified exact HTTPS origin exist. Phase 3 is deferred until user review and approval.

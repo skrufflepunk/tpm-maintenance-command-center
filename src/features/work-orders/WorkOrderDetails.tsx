@@ -1,3 +1,4 @@
+import { verifiedRecordUrl } from "../../config/sourceLinks";
 import type { Rules, Snapshot, WorkOrder } from "../../domain/types";
 import type { SessionHistory } from "../../data/csvSession";
 import { age, isActive, label, reasons } from "../../domain/rules";
@@ -18,6 +19,7 @@ export function WorkOrderDetails({
   history: SessionHistory;
   onClose: () => void;
 }) {
+  const sourceUrl = verifiedRecordUrl(w.sourceUrl);
   const date = (v: WorkOrder["createdAt"]) =>
     v ? `${v.value} (${v.precision} precision)` : "Unknown";
   const fields = {
@@ -117,10 +119,35 @@ export function WorkOrderDetails({
           highlights require an explicit pending state.
         </p>
       </section>
-      <p className="muted">
-        Rentvine link unavailable: no verified source URL or permitted host is
-        configured. Viewing details does not change records or send messages.
-      </p>
+      <div className="source-link-action">
+        {sourceUrl ? (
+          <a
+            className="outline-button"
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open in Rentvine
+          </a>
+        ) : (
+          <>
+            <button
+              className="outline-button"
+              disabled
+              aria-describedby="rentvine-unavailable"
+            >
+              Open in Rentvine
+            </button>
+            <p id="rentvine-unavailable" className="muted">
+              Rentvine link unavailable: no verified source URL and permitted
+              HTTPS origin are configured.
+            </p>
+          </>
+        )}
+        <p className="muted">
+          Viewing details does not change records or send messages.
+        </p>
+      </div>
     </Modal>
   );
 }

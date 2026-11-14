@@ -165,6 +165,20 @@ test("keyboard focus is contained in dialogs and overview remains usable at 200%
       page.getByRole("heading", { name: "Analytics", exact: true }),
     ).toBeVisible();
   }
+  await page.setViewportSize({ width: 320, height: 650 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(
+    page.getByRole("button", { name: "Close navigation", exact: true }).last(),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toBeFocused();
 });
 
 test("automated WCAG checks cover overview, rules and health", async ({

@@ -1735,3 +1735,10 @@ dialog .table-scroll {
     scroll-behavior: auto !important;
   }
 }
+
+@media (max-width: 380px) {
+  /* Keep the active destination and both status actions visible at narrow widths. */
+  .breadcrumb > span {
+    display: none;
+  }
+}

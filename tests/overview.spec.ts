@@ -54,16 +54,23 @@ test("dashboard reconciles counts, drills into records, and preserves filters ac
             ? "Portfolio overview"
             : name === "Work Orders"
               ? "Work Order Explorer"
-              : name,
+              : name === "Vendors"
+                ? "Vendor Watch"
+                : name,
         exact: true,
       }),
     ).toBeVisible();
-    if (name !== "Work Orders" && name !== "Action Center")
+    if (
+      name !== "Work Orders" &&
+      name !== "Action Center" &&
+      name !== "Vendors"
+    )
       await expect(page.getByRole("status")).toContainText("8 of 24");
     if (
       name !== "Overview" &&
       name !== "Work Orders" &&
-      name !== "Action Center"
+      name !== "Action Center" &&
+      name !== "Vendors"
     )
       await expect(
         page.getByText("This page is a labeled placeholder.", { exact: false }),
@@ -220,7 +227,7 @@ test("dashboard panels reconcile drill-downs, sort records and keep future actio
   await page.getByRole("heading", { name: "Portfolio overview" }).waitFor();
   await navigate(page, "Vendors");
   await expect(
-    page.getByRole("heading", { name: "Vendors", exact: true }),
+    page.getByRole("heading", { name: "Vendor Watch", exact: true }),
   ).toBeVisible();
   await navigate(page, "Overview");
   const status = page.locator(".status-panel");

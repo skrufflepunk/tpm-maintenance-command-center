@@ -1,6 +1,6 @@
 # TPM Maintenance Command Center
 
-Phases 1–3 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; there is no live Rentvine connection, source mutation or messaging. Work Order Explorer can preview and load synthetic or approved redacted CSVs into an isolated in-memory evaluation session.
+Phases 1–4 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; there is no live Rentvine connection, source mutation or messaging. Work Order Explorer can preview and load synthetic or approved redacted CSVs into an isolated in-memory evaluation session.
 
 ## Run locally
 
@@ -17,7 +17,7 @@ Configuration is optional for this demo. `.env.example` documents the single sup
 
 ## Phase 1 behavior
 
-- Responsive navy/blue application shell with exactly six tabs. Overview, Work Order Explorer and Action Center are implemented; the other three pages remain clearly labeled placeholders. Overview filters are preserved independently from Explorer filters.
+- Responsive navy/blue application shell with exactly six tabs. Overview, Work Order Explorer, Action Center and Vendor Watch are implemented; the other two pages remain clearly labeled placeholders. Overview filters are preserved independently from Explorer filters.
 - Morning Briefing, five KPI drill-downs, monthly creation/completion activity, interactive age/category breakdowns, deterministic follow-up queue, property summaries, completion durations, data health and read-only record details.
 - Search, multi-select property/status/vendor/category/priority/age filters, creation-date ranges, removable filter chips, clear-all and explicit empty states. Filter families combine with AND; choices within a family combine with OR.
 - All metrics and drill-downs use the same scoped records. Charts expose exact counts and keyboard-operable drill-downs; monthly activity also has an accessible table. Age/category counts remain readable as text.
@@ -33,6 +33,7 @@ No previous snapshot exists, so comparisons and no-observed-change nudges are ex
 | Location                | Responsibility                                                 |
 | ----------------------- | -------------------------------------------------------------- |
 | `src/app`               | Shell, navigation, loading, shared scope and dialogs           |
+| `src/features/vendors`  | Vendor directory, profiles, workload, CSV and local drafts     |
 | `src/features/overview` | Working dashboard                                              |
 | `src/components`        | Shared filters, table, modal, palm and rule settings           |
 | `src/domain`            | Typed contracts, pure rules, selectors and labels              |
@@ -108,3 +109,15 @@ Five KPI cards filter unique work orders requiring follow-up, configured aging, 
 Open a record or **Draft Follow-up** to inspect facts and recommendations, choose Owner/Tenant/Vendor, edit a natural plain-text template, and **Copy draft**. Nothing is sent. Edits are kept separately per recipient only while the panel is open and disappear when it closes or changes source. No names, addresses, contact records, AI integration or browser storage are needed. **Open corresponding work order in Explorer** opens the exact scoped record without losing the selected dataset.
 
 No-observed-change suggestions require sufficiently spaced, compatible retained CSV observations with known unchanged fields and stable coverage. The fixed demo has no prior pair, so this capability is unavailable there. This is not a complete activity history, a missed-appointment detector or evidence of a party failing to respond. Source scheduling, approval duration and full source activity remain unavailable. New action/template unit tests and desktop Chrome/Edge/iframe checks supplement all existing Phase 1/2 regression suites. No live Rentvine connection, external message, source write, merge or public deployment is included.
+
+
+## Phase 4 · Vendor Watch
+Open **Vendors** for the searchable/sortable/paginated vendor directory and linked follow-up workspace. Five KPI cards distinguish vendor counts from aged assigned work-order counts. Profiles show all supplied vendor fields, workload by category, current/completed/aged report records and completion means with sample/exclusion/precision labels. Related records open the exact work order in Explorer or Action Center. Missing active states, contacts, specialties, insurance and ratings stay unknown/unavailable/Not rated.
+
+Directory and workload source selectors are independent. Both default to the unchanged fictional fixtures. Use **Import vendor CSV** to attest synthetic/approved redacted evaluation data, select a UTF-8 file, supply vendor account/scope/timezone, map actual headers and active values, choose the specialty separator, then validate/preview/load. Vendor ID is required. No header is assumed to be a verified Rentvine export name. Vendor CSVs never add rows to demo data or replace the separate work-order CSV session. **Clear vendor CSV** clears only the vendor session; reload clears both.
+
+To calculate CSV workload, first load the work-order report in Explorer, then independently load a same-account vendor report. Explicitly confirm that Vendor ID shares the work-order report's identifier namespace. Only exact scoped IDs join; unverified or mismatched sources show Unavailable. A vendor-only CSV still works as a directory without workload. Names/similar names never create joins. Separate report scopes/times and missing/unresolved joins are disclosed.
+
+Profiles offer four editable vendor draft purposes: status update, appointment inquiry, estimate request and aging follow-up. Choose a verified active assignment, edit and copy. Aging drafts require the configured age threshold. Edits are local to the open profile and discarded on close/source change. Nothing is sent, dialed, uploaded or stored in the browser. Real operational contact access still requires server authorization, privacy review and protected storage; this phase permits synthetic/redacted evaluation only.
+
+Validation/review scope: [PHASE4_REVIEW.md](PHASE4_REVIEW.md). Properties and Analytics remain placeholders. No merge, live Rentvine integration or public deployment is included.

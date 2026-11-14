@@ -49,6 +49,12 @@ export interface Vendor {
   displayName: string;
   categories: string[];
   active: boolean | null;
+  vendorType?: string | null;
+  businessEmail?: string | null;
+  businessPhone?: string | null;
+  state?: string | null;
+  liabilityInsuranceExpiration?: SourceDate | null;
+  fieldCoverage?: Record<string, Coverage>;
   provenance: string;
 }
 export interface DatasetProvenance {

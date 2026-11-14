@@ -18,3 +18,5 @@ import "./explorer.css";
 import "./desktop.css";
 
 import "./actions.css";
+
+import "./vendors.css";

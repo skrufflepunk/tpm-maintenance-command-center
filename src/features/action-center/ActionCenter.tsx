@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useImperativeHandle } from "react";
 import {
   ArrowDownUp,
   ArrowRight,
@@ -30,12 +30,14 @@ import type { ActionFocus, ActionItem } from "../../domain/actions";
 import type { Filters, Rules, Snapshot } from "../../domain/types";
 import { WorkOrderDetails } from "../work-orders/WorkOrderDetails";
 import { MessageDraft } from "./MessageDraft";
+import type { Ref } from "react";
 interface Props {
+  ref?: Ref<{ openRecord: (id: string) => void }>;
   demo: Snapshot;
   rules: Rules;
   onOpenExplorer: (id: string) => void;
 }
-export function ActionCenter({ demo, rules, onOpenExplorer }: Props) {
+export function ActionCenter({ demo, rules, onOpenExplorer, ref }: Props) {
   const { session, csv, source, selectSource } = useWorkspace();
   const snapshot = source === "csv" && csv ? csv : demo;
   const dataset = snapshot.datasets.find(
@@ -52,6 +54,22 @@ export function ActionCenter({ demo, rules, onOpenExplorer }: Props) {
       direction: 1 | -1;
     }>({ key: "queue", direction: 1 }),
     [requested, setRequested] = useState(1);
+  useImperativeHandle(ref, () => ({
+    openRecord: (id) => {
+      const order = snapshot.workOrders.find((w) => w.id === id);
+      if (order)
+        setSelected({
+          order,
+          recommendations:
+            actionQueue(
+              [order],
+              reference,
+              scopedRules,
+              source === "csv" ? session.observationPair() : null,
+            )[0]?.recommendations ?? [],
+        });
+    },
+  }));
   const pair = source === "csv" ? session.observationPair() : null,
     history =
       source === "csv"

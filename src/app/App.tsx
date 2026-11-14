@@ -1,3 +1,4 @@
+import { VendorWatch } from "../features/vendors/VendorWatch";
 import { ActionCenter } from "../features/action-center/ActionCenter";
 import { useWorkspace } from "../data/workspace/context";
 import { WorkOrderExplorer } from "../features/work-orders/WorkOrderExplorer";
@@ -66,7 +67,8 @@ export default function App() {
     [drill, setDrill] = useState<{ title: string; rows: WorkOrder[] } | null>(
       null,
     );
-  const { source: explorerSource, csv } = useWorkspace();
+  const { source: explorerSource, csv, vendorSource } = useWorkspace();
+  const actionRef = useRef<{ openRecord: (id: string) => void }>(null);
   const explorerRef = useRef<{ openRecord: (id: string) => void }>(null);
   const [viewedAt] = useState(() => new Date().toISOString());
   const mainRef = useRef<HTMLElement>(null),
@@ -134,8 +136,17 @@ export default function App() {
         Loading fictional portfolio…
       </main>
     );
-  const operations = tab === "Work Orders" || tab === "Action Center";
-  const explorerCsv = operations && explorerSource === "csv";
+  const operations =
+    tab === "Work Orders" || tab === "Action Center" || tab === "Vendors";
+  const explorerCsv =
+    tab === "Vendors"
+      ? vendorSource === "csv" || explorerSource === "csv"
+      : operations && explorerSource === "csv";
+  const openActionRecord = (id: string) => {
+    setTab("Action Center");
+    location.hash = "Action Center";
+    actionRef.current?.openRecord(id);
+  };
   const openExplorerRecord = (id: string) => {
     setTab("Work Orders");
     location.hash = "Work Orders";
@@ -330,14 +341,20 @@ export default function App() {
                   ? "Portfolio overview"
                   : tab === "Work Orders"
                     ? "Work Order Explorer"
-                    : tab}
+                    : tab === "Vendors"
+                      ? "Vendor Watch"
+                      : tab}
               </h1>
               <p className="muted">
                 {tab === "Overview"
                   ? "A clear view of what’s moving. A focused view of what needs you."
                   : tab === "Work Orders"
                     ? "Explore work orders and evaluate CSV imports in an isolated session."
-                    : "A dedicated workspace is planned for a later phase."}
+                    : tab === "Vendors"
+                      ? "Find vendors, review verified workload and prepare local follow-up drafts."
+                      : tab === "Action Center"
+                        ? "Review source-qualified priorities and prepare local follow-up drafts."
+                        : "A dedicated workspace is planned for a later phase."}
               </p>
             </div>
             <button
@@ -537,10 +554,22 @@ export default function App() {
             aria-label="Action Center workspace"
           >
             <ActionCenter
+              ref={actionRef}
               key={`${explorerSource}:${explorerSource === "csv" ? csv?.id : snapshot.id}`}
               demo={snapshot}
               rules={rules}
               onOpenExplorer={openExplorerRecord}
+            />
+          </section>
+          <section
+            hidden={tab !== "Vendors"}
+            aria-label="Vendor Watch workspace"
+          >
+            <VendorWatch
+              demo={snapshot}
+              rules={rules}
+              onOpenExplorer={openExplorerRecord}
+              onOpenAction={openActionRecord}
             />
           </section>
           {operations ? null : tab !== "Overview" ? (

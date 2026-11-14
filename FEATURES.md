@@ -42,3 +42,8 @@ Acceptance: duplicate file import is idempotent; errors are actionable without P
 
 ## Release validation
 Use synthetic fixtures for missing dates/statuses/vendors, duplicates, invalid dates, partial reports, absent prior snapshots, failed import, stale data, empty results, authorization failure, and narrow-screen layouts. Demonstrate working filters and every visible action. Verify anonymous requests fail for both app data and backend routes outside Google Sites.
+
+## Phase 2 delivery scope
+Work Order Explorer replaces the Work Orders placeholder while retaining the six main navigation names. All register columns sort, unknown values remain last in either direction, ties use stable IDs, pagination resets on filter/sort/page-size/source changes, and the page supplies explicit empty states. Date filters use creation dates. Summary counts reconcile to the filtered dataset. Pending approval highlights reflect explicit pending state rather than an assumed waiting interval. Age highlights use the configured proposed calendar-day threshold and exclude unknown ages/statuses.
+
+Record details show all available normalized allowlisted fields, original source status/priority, coverage, provenance and supplied dates. Compatible CSV loads can show observed changes; missing history is labeled unavailable. The import flow requires redacted/synthetic evaluation confirmation, source scope/timezone, exact column mappings, reviewed enums, validation and a normalized preview before loading. Invalid candidates preserve the last successful CSV state. Source switching resets Explorer scope; it never mixes data or changes Overview's independent demo filters/data. CSV session clearing is local only and has no source-system effect.

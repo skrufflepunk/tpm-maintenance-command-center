@@ -280,9 +280,13 @@ export function AssistantPanel({
           <ExternalLink size={16} />
           Open Rentvine <small>Not configured</small>
         </button>
-        <button disabled>
+        <button
+          onClick={() => {
+            location.hash = "Work Orders";
+          }}
+        >
           <FileUp size={16} />
-          Import report <small>Coming soon</small>
+          Preview CSV in Explorer
         </button>
       </section>
       <section className="assistant-card recent-activity">

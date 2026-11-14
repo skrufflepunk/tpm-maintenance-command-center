@@ -29,6 +29,8 @@ export interface WorkOrder {
   createdAt: SourceDate | null;
   completedAt: SourceDate | null;
   sourceUrl: string | null;
+  unitLabel?: string | null;
+  sourceUpdatedAt?: SourceDate | null;
   fieldCoverage: Record<string, Coverage>;
   provenance: string;
 }

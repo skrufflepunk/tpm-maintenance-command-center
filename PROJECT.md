@@ -36,3 +36,8 @@ PROJECT.md defines scope; DESIGN_SYSTEM.md defines presentation; FEATURES.md def
 ## Phase 1 implementation status
 
 The current implementation provides a React/TypeScript/Vite/Tailwind application shell and a functional synthetic-only Overview. Work Orders, Action Center, Vendors, Properties, and Analytics have navigation and explicit placeholders, as requested for Phase 1; the complete release criteria above still apply to later delivery. No operational data, CSV ingestion, API integration, authentication, deployment, or communications are enabled. Branding, timezone and rule defaults remain illustrative pending approval.
+
+## Phase 2 implementation status
+Work Orders now opens Work Order Explorer: searchable and sortable source-qualified records, property/status/vendor/category/priority/approval/creation-date/age filters, scoped KPIs, pagination and detailed read-only evidence. Shared rule settings drive aging highlights; explicit approval state drives pending highlights because approval-request dates are not supplied. “Overdue” remains a proposed follow-up threshold, not a verified service-level violation.
+
+CSV preview/validation supports explicit source column and enum mappings against DATA_SCHEMA.md; no actual Rentvine header contract has been supplied. The file must be synthetic or approved redacted evaluation data. Validated CSVs replace only an isolated in-memory CSV snapshot, never demo records. Overview continues using its independent demo dataset. Operational authentication, storage/retention, protected sharing, live integration and the other four pages remain future work.

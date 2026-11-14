@@ -1,6 +1,6 @@
 # TPM Maintenance Command Center
 
-Phase 1 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; this application has no Rentvine connection, CSV ingestion, source mutations, or messaging.
+Phases 1 and 2 of an internal, read-only maintenance dashboard. The working Overview uses **fictional demo data only**. Rentvine remains the intended source of truth for future operational versions; there is no live Rentvine connection, source mutation or messaging. Work Order Explorer can preview and load synthetic or approved redacted CSVs into an isolated in-memory evaluation session.
 
 ## Run locally
 
@@ -17,8 +17,8 @@ Configuration is optional for this demo. `.env.example` documents the single sup
 
 ## Phase 1 behavior
 
-- Responsive navy/blue application shell with exactly six tabs. Overview is implemented; the other five pages are clearly labeled placeholders and preserve shared filters.
-- Morning Briefing, four KPI drill-downs, monthly creation/completion activity, interactive age/category breakdowns, deterministic follow-up queue, property summaries, completion durations, data health and read-only record details.
+- Responsive navy/blue application shell with exactly six tabs. Overview and Work Order Explorer are implemented; the other four pages remain clearly labeled placeholders. Overview filters are preserved independently from Explorer filters.
+- Morning Briefing, five KPI drill-downs, monthly creation/completion activity, interactive age/category breakdowns, deterministic follow-up queue, property summaries, completion durations, data health and read-only record details.
 - Search, multi-select property/status/vendor/category/priority/age filters, creation-date ranges, removable filter chips, clear-all and explicit empty states. Filter families combine with AND; choices within a family combine with OR.
 - All metrics and drill-downs use the same scoped records. Charts expose exact counts and keyboard-operable drill-downs; monthly activity also has an accessible table. Age/category counts remain readable as text.
 - Native modal dialogs, focus return, navigation focus management, skip link, labeled controls, visible focus and reduced-motion support. Automated accessibility checks supplement browser interaction tests; they are not a complete accessibility certification.
@@ -41,7 +41,7 @@ No previous snapshot exists, so comparisons and no-observed-change nudges are ex
 | `src/styles.css`        | Tailwind semantic tokens and responsive components             |
 | `tests`                 | Real Chromium browser tests                                    |
 
-The repository interface includes `getSnapshot`, `getDataHealth`, `previewImport`, `commitImport` and `getComparableChanges`. Phase 1 advertises no import/comparison/source-link capabilities. Import operations reject without mutations; no unverified CSV schema or Rentvine endpoint is assumed. A future adapter must implement reviewed normalization, provenance, import atomicity and authorization before it can be enabled. See ARCHITECTURE.md and DATA_SCHEMA.md.
+The repository interface includes `getSnapshot`, `getDataHealth`, `previewImport`, `commitImport` and `getComparableChanges`. Phase 1 advertises no import/comparison/source-link capabilities. The demo adapter still rejects import mutations. The separate `CsvSession` evaluation adapter validates and atomically replaces its own in-memory snapshot; it does not alter the demo or authorize operational data access. No unverified CSV header or Rentvine endpoint is assumed. See ARCHITECTURE.md and DATA_SCHEMA.md.
 
 ## Verification
 
@@ -65,4 +65,21 @@ Still needed for later phases: approved TPM assets/colors, portfolio timezone an
 No application deployment is included. See REVIEW.md for review scope and verification evidence.
 
 ## Tropical Overview presentation
-The reference-led visual redesign keeps the existing fictional dataset and data layer. Five color-coded KPIs, a status donut, vendor workload, property heatmap, compact sortable table, tropical header/sidebar and horizontal shortcuts complement the original dashboard controls. The right rail provides rule-based snapshot counts and working data-health/record actions. AI assistance, Rentvine access, report imports and a recent-activity event feed are explicitly unavailable. The artwork is original inline SVG, with provisional branding. Screenshots are generated as review artifacts outside source control.
+The reference-led visual redesign keeps the existing fictional dataset and data layer. Five color-coded KPIs, a status donut, vendor workload, property heatmap, compact sortable table, tropical header/sidebar and horizontal shortcuts complement the original dashboard controls. The right rail provides rule-based snapshot counts and working data-health/record actions. AI assistance, Rentvine access and a recent-activity event feed are explicitly unavailable. CSV evaluation is available through the Work Order Explorer. The artwork is original inline SVG, with provisional branding. Screenshots are generated as review artifacts outside source control.
+
+## Phase 2 · Work Order Explorer
+Open **Work Orders** to search and sort the register, filter by property/status/vendor/category/priority/owner approval/created-date range/active age, inspect scoped summary cards and open read-only details. Pagination offers 10, 25 or 50 rows. Dates and ages sort as typed values; missing values stay last. Aging highlights follow the configurable rule; pending approval is highlighted only when explicitly supplied. Approval waiting time is unavailable without a request date. Details show normalized source fields, coverage and the available date/history evidence.
+
+Use **Import CSV** for the isolated evaluation workflow:
+
+1. Confirm the file is synthetic or approved redacted evaluation data; choose a UTF-8 comma-separated file (2 MiB / 10,000 rows maximum).
+2. Supply source account, report scope/comparison key and timezone, and source report time when known.
+3. Map actual file headers to documented normalized fields. A stable work-order ID is required. Leave absent fields unmapped. Review mappings for every supplied status, priority, approval and assignment value; unmapped values stay Unknown.
+4. Select **Validate & preview**, inspect normalized sample rows and warnings, then **Load validated CSV session**. Rejected candidates cannot load and preserve existing records. Duplicate replays do not add records or history.
+5. Switch between fictional demo and CSV using **Current data source**, or clear the CSV session. No demo rows, properties or vendors are merged into CSV data. The CSV source is retained across in-app navigation but disappears on browser reload.
+
+There are no verified Rentvine export headers or production source mappings in this repository. This evaluator accepts only explicitly mapped columns and does not guarantee compatibility with an uninspected export. It does not provide operational authentication, shared import authorization/storage, automated privacy redaction, live API access or production retention. Do not load private operational files. No CSV data leaves browser memory, is written to browser storage, or is committed to Git. Overview remains the working fictional demo and is unaffected by Explorer imports. No new dependencies are required.
+
+New tests cover CSV quoted syntax/limits, unknowns, duplicate identity rejection, invalid dates, assignment coverage, transactional preview/commit, idempotency, stale candidates, scoped comparison/history, filters, typed sorting, pagination, source separation, record details and accessibility.
+
+Review scope and final Phase 2 validation evidence: [PHASE2_REVIEW.md](PHASE2_REVIEW.md).

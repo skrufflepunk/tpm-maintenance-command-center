@@ -52,8 +52,9 @@ test("dashboard reconciles counts, drills into records, and preserves filters ac
         exact: true,
       }),
     ).toBeVisible();
-    await expect(page.getByRole("status")).toContainText("8 of 24");
-    if (name !== "Overview")
+    if (name !== "Work Orders")
+      await expect(page.getByRole("status")).toContainText("8 of 24");
+    if (name !== "Overview" && name !== "Work Orders")
       await expect(
         page.getByText("This page is a labeled placeholder.", { exact: false }),
       ).toBeVisible();
@@ -86,7 +87,7 @@ test("multi-select, chart counts, rules, keyboard dialog, dates and data health 
     page.getByRole("heading", { name: "Portfolio overview" }),
   ).toBeVisible();
   const status = page
-    .locator(".multi-filter")
+    .locator(".main > .filter-panel .multi-filter")
     .filter({ has: page.locator("summary").filter({ hasText: "Status" }) });
   await status.locator("summary").click();
   await status.getByLabel("Open", { exact: true }).check();
@@ -303,11 +304,9 @@ test("five KPI cards disclose their cohorts and show unavailable means without e
   await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(7);
   await page.keyboard.press("Escape");
   const table = page.locator(".lower-grid").getByRole("table");
-  const urgentRow = table
-    .getByRole("row")
-    .filter({
-      has: page.getByRole("button", { name: "DEMO-1001", exact: true }),
-    });
+  const urgentRow = table.getByRole("row").filter({
+    has: page.getByRole("button", { name: "DEMO-1001", exact: true }),
+  });
   await expect(urgentRow).toContainText("Unknown assignment");
   await expect(urgentRow).toContainText("Coverage unavailable");
   await expect(

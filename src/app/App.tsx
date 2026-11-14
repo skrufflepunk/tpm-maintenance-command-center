@@ -1,3 +1,4 @@
+import { WorkOrderExplorer } from "../features/work-orders/WorkOrderExplorer";
 import { TropicalScene } from "../components/TropicalScene";
 import { trapFocus } from "../components/focus";
 import { Overview } from "../features/overview/Overview";
@@ -63,6 +64,7 @@ export default function App() {
     [drill, setDrill] = useState<{ title: string; rows: WorkOrder[] } | null>(
       null,
     );
+  const [explorerSource, setExplorerSource] = useState<"demo" | "csv">("demo");
   const [viewedAt] = useState(() => new Date().toISOString());
   const mainRef = useRef<HTMLElement>(null),
     initialNavigation = useRef(true);
@@ -129,6 +131,7 @@ export default function App() {
         Loading fictional portfolio…
       </main>
     );
+  const explorerCsv = tab === "Work Orders" && explorerSource === "csv";
   const dataset = snapshot.datasets.find(
     (d) => d.datasetType === "workOrders",
   )!;
@@ -250,12 +253,12 @@ export default function App() {
             <TropicalScene vertical />
           </div>
           <span className="demo-label">
-            <span /> DEMO WORKSPACE
+            <span /> {explorerCsv ? "CSV EVALUATION" : "DEMO WORKSPACE"}
           </span>
           <p>
-            Fictional portfolio.
+            {explorerCsv ? "Isolated CSV session." : "Fictional portfolio."}
             <br />
-            Real clarity.
+            Read-only clarity.
           </p>
           <small>Original illustration · provisional branding</small>
           <div className="sidebar-profile">
@@ -274,8 +277,9 @@ export default function App() {
             <p>MAINTENANCE OPERATIONS</p>
             <div className="hero-title">Maintenance Command Center</div>
             <span>
-              Priorities, clarity, and follow-ups across your fictional
-              portfolio.
+              {explorerCsv
+                ? "Read-only CSV evaluation · session memory only."
+                : "Priorities, clarity, and follow-ups across your fictional portfolio."}
             </span>
           </div>
           <div className="breadcrumb">
@@ -294,9 +298,10 @@ export default function App() {
           <div className="topbar-actions">
             <span className="demo-pill">
               <span />
-              Demo data
+              {explorerCsv ? "CSV session" : "Demo data"}
             </span>
             <button
+              hidden={tab === "Work Orders"}
               className="health-button"
               onClick={() => setHealthOpen(true)}
             >
@@ -334,7 +339,9 @@ export default function App() {
               <p className="muted">
                 {tab === "Overview"
                   ? "A clear view of what’s moving. A focused view of what needs you."
-                  : "A dedicated workspace is planned for a later phase."}
+                  : tab === "Work Orders"
+                    ? "Explore work orders and evaluate CSV imports in an isolated session."
+                    : "A dedicated workspace is planned for a later phase."}
               </p>
             </div>
             <button
@@ -348,11 +355,22 @@ export default function App() {
           <div className="demo-notice">
             <Sparkles size={16} />
             <span>
-              <strong>Fictional sample data.</strong> Every record, property,
-              vendor, and date is synthetic. No Rentvine connection.
+              {explorerCsv ? (
+                <>
+                  <strong>CSV evaluation · session only.</strong> Imported
+                  records are separate from demo data. No server upload or
+                  Rentvine connection.
+                </>
+              ) : (
+                <>
+                  <strong>Fictional sample data.</strong> Every record,
+                  property, vendor, and date is synthetic. No Rentvine
+                  connection.
+                </>
+              )}
             </span>
           </div>
-          <div className="snapshot-meta">
+          <div className="snapshot-meta" hidden={tab === "Work Orders"}>
             <span>
               <span className="status-dot" />
               Fixed demo snapshot
@@ -363,6 +381,7 @@ export default function App() {
           </div>
           <section
             className="filter-panel"
+            hidden={tab === "Work Orders"}
             aria-label="Shared work-order filters"
           >
             <div className="filter-top">
@@ -506,7 +525,17 @@ export default function App() {
               · filters apply to all work-order metrics
             </p>
           </section>
-          {tab !== "Overview" ? (
+          <section
+            hidden={tab !== "Work Orders"}
+            aria-label="Work Order Explorer workspace"
+          >
+            <WorkOrderExplorer
+              demo={snapshot}
+              rules={rules}
+              onSourceChange={setExplorerSource}
+            />
+          </section>
+          {tab === "Work Orders" ? null : tab !== "Overview" ? (
             <Panel
               title={`${tab} is coming in a later phase`}
               eyebrow="PHASE 1 · NAVIGATION PREVIEW"
@@ -540,7 +569,9 @@ export default function App() {
           <footer className="page-footer">
             <span>
               <ShieldCheck size={14} />
-              Read-only demo · no imports, source changes, or messages
+              {tab === "Work Orders"
+                ? "Read-only evaluation · no source changes or messages"
+                : "Read-only demo · no imports, source changes, or messages"}
             </span>
             <span>Viewed {showDate(viewedAt)} · not source freshness</span>
           </footer>
@@ -619,10 +650,10 @@ export default function App() {
           </div>
           <p className="muted">
             Work-order freshness threshold: {rules.staleAfterHours} elapsed
-            hours. Fixed fictional timestamps are not live data. CSV import and
-            API access are unavailable in Phase 1. Schema{" "}
-            {snapshot.schemaVersion} · mapping {snapshot.mappingVersion} · rules{" "}
-            {rules.rulesVersion}.
+            hours. Fixed fictional timestamps are not live data. CSV evaluation
+            is available in Work Orders; live API access remains unavailable.
+            Schema {snapshot.schemaVersion} · mapping {snapshot.mappingVersion}{" "}
+            · rules {rules.rulesVersion}.
           </p>
         </Modal>
       )}

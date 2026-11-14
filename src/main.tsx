@@ -9,3 +9,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 
 import "./polish.css";
+
+import "./explorer.css";

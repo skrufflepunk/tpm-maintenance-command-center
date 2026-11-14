@@ -1,5 +1,15 @@
 # Architecture
 
+## Phase 7 protected embedding/deployment
+
+One protected Node 24 service still serves the Vite build and authenticated same-origin APIs over a reviewed HTTPS ingress, using private durable local SQLite payload storage. The prepared multi-stage Dockerfile pins a verified Node 24 image digest, runs non-root and excludes development/test services and secrets. VM Caddy/systemd examples are preparation only. Default listener stays loopback; an explicit validated `TPM_BIND_ADDRESS=0.0.0.0` supports protected container/PaaS ingress. One instance is supported; serverless ephemeral disks/network-shared SQLite are unsuitable without a reviewed adapter change.
+
+The root/sign-out access gates are the only public app HTML and contain no maintenance data, tokens or identity claims. Anonymous app assets/API remain denied. Authorization is initiated in a user-opened top-level tab, never redirected through a Google iframe. CSP still defaults to deny framing; exact HTTPS ancestors require operator review. The authenticated-tab fallback is the same dashboard, with the existing Google Site as launch point.
+
+Google Workspace mode requires canonical Google issuer, approved exact domain, private confidential web-client secret file and existing subject/role allowlist. Signed `hd`/verified-email checks supplement issuer/audience/PKCE/state/nonce/expiry. Sessions bind provider/domain and invalidate on policy change. Private key/role/identity secret-file permissions are checked at startup. No raw Google token is persisted/returned. No live company provider has been configured or certified here.
+
+Data & Settings presents four stable accessible panels without changing data-access/domain layers. A consistent operator-only SQLite ciphertext backup tool removes ephemeral auth/staging state from the backup, validates private paths, refuses overwrite and has no HTTP endpoint. Backups/key recovery and hosted acceptance remain operator responsibilities. See docs/HOSTING_OPTIONS.md, docs/GOOGLE_WORKSPACE.md, docs/GOOGLE_SITES.md, docs/PRODUCTION_CHECKLIST.md and ops/README.md.
+
 ## Current Phase 6 architecture
 
 The implemented flow is React → authenticated same-origin Node HTTP API → shared normalized CSV parsers/domain rules → AES-256-GCM encrypted SQLite payloads on private durable disk. A single Node 24 instance is supported. `server/index.ts` is bundled to `build-server/index.mjs`; production serves both protected app assets and protected data endpoints. Vite is for synthetic development only. The synthetic OIDC test provider is excluded from the production entrypoint/bundle.

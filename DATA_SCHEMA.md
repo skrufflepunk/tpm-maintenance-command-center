@@ -1,5 +1,11 @@
 # Normalized data schema
 
+## Phase 7 access/deployment contracts
+
+No CSV/entity schema or source calculation changes. Authenticated bootstrap adds safe access metadata: provider (`oidc`/`google_workspace`), whether exact framing origins are configured, and absolute session hours. No secret, raw identity token, Google email or list of portal origins is exposed by this metadata. Encrypted server sessions now bind provider and approved Workspace domain alongside subject, expiry and source selection; old Phase 6 sessions must sign in again. Existing encrypted operational records remain compatible.
+
+The Google profile requests `openid email`, validates signed `hd` and boolean `email_verified`, and still requires an explicitly listed signed subject. These are identity-provider fields, not assumed Rentvine report columns. The OIDC `hd` request parameter is only a UI hint. The operator backup tool excludes session/login/stage namespaces in its ciphertext backup, so restoration cannot resurrect revoked sessions or previews. Settings URL context contains only one of four public section IDs; no source rows, credentials or tokens are stored in the URL/browser storage.
+
 ## Phase 6 managed-source contracts
 
 Current shared types are in `src/data/managedTypes.ts`; parsers continue to use the original normalized WorkOrder/Snapshot/VendorDirectory contracts. `propertyCsv.ts` adds an explicitly mapped property directory with required stable property ID/name, optional permitted address and provenance. No native Rentvine header names or API fields are asserted.

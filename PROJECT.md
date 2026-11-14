@@ -1,6 +1,14 @@
 # TPM Maintenance Command Center — Project
 
-## Current release — Phase 6
+## Current release — Phase 7
+
+Phase 7 builds on `130f2ad` and prepares controlled private hosting inside the existing restricted Google Sites Team Portal. The Site stays the team's main interface; the dashboard host is a protected embedding service, with an authenticated-tab fallback for browser cookie restrictions. No new portal, public deployment, Google client, live Rentvine connection or automatic ingestion is activated.
+
+Data & Settings now has four accessible sections: Data Sources, Imports & History, Automation, Security & Settings. All prior six workspaces, source isolation, CSV behavior, calculations, roles and settings remain. A data-free access/sign-out gate avoids redirecting identity-provider login inside frames. The prepared Google Workspace profile requires signed hosted-domain/email verification plus the existing explicit subject/role allowlist. A portable non-root Node 24 container, backup tool and VM templates support a later approved deployment.
+
+[Hosting options and planning budgets](docs/HOSTING_OPTIONS.md), [Google Workspace setup](docs/GOOGLE_WORKSPACE.md), [Google Sites steps](docs/GOOGLE_SITES.md), [operator runbook](ops/README.md) and [production/security checklist](docs/PRODUCTION_CHECKLIST.md) define the next controlled steps. Current provider pricing/docs and actual company Google/cookie behavior could not be verified because external documentation destinations are blocked. Obtain approved hosting/region/budget, app origin, Workspace domain/client/staff roles, exact portal ancestors, data/retention policy and recovery ownership before deployment. Do not ask for passwords/secrets in chat. Earlier phases below are release history where superseded.
+
+## Phase 6 baseline
 
 Phases 1–5 are the completed baseline (`a177e1f`). Phase 6 adds a protected CSV operating foundation without requiring Rentvine API approval. **All six sections, including Overview, use the same selected Demo or CSV work-order workspace.** Vendor/property reports retain separate provenance but share that workspace's account and source mode; verified scoped identifiers are required for joins. This supersedes earlier phases' independent Overview/vendor selection behavior described in the historical delivery notes below.
 

@@ -16,7 +16,7 @@
     "server": "tsx server/index.ts",
     "test:server": "vitest run server",
     "test:services": "tsx test-support/phase6Services.ts",
-    "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --target=node24 --packages=external --outfile=build-server/index.mjs",
+    "build:server": "esbuild server/index.ts server/backup.ts --bundle --platform=node --format=esm --target=node24 --packages=external --outdir=build-server --out-extension:.js=.mjs",
     "start": "node build-server/index.mjs"
   },
   "dependencies": {
@@ -43,6 +43,11 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.0",
     "vite": "^7.2.0",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.12"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.8"
+    }
   }
 }

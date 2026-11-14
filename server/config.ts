@@ -15,6 +15,42 @@ export interface ServerConfig {
   ingestionDirectory: string | null;
   allowScheduledCsv: boolean;
   port: number;
+  bindAddress: "127.0.0.1" | "0.0.0.0";
+  authProvider: "oidc" | "google_workspace";
+  workspaceDomain: string | null;
+}
+export function identityPolicy(
+  provider: string,
+  issuer: string,
+  domain?: string,
+) {
+  requireValue(
+    ["oidc", "google_workspace"].includes(provider),
+    500,
+    "INVALID_CONFIG",
+    "Select oidc or google_workspace explicitly.",
+  );
+  if (provider === "google_workspace") {
+    requireValue(
+      issuer === "https://accounts.google.com" &&
+        domain &&
+        domain === domain.toLowerCase() &&
+        /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(domain),
+      500,
+      "INVALID_CONFIG",
+      "Google Workspace requires its canonical issuer and an exact reviewed lowercase Workspace domain.",
+    );
+  } else
+    requireValue(
+      !domain,
+      500,
+      "INVALID_CONFIG",
+      "Workspace domain restrictions require the google_workspace authentication profile.",
+    );
+  return {
+    authProvider: provider as ServerConfig["authProvider"],
+    workspaceDomain: domain || null,
+  };
 }
 export function exactOrigins(input: string[], local = false) {
   return input.map((value) => {
@@ -35,6 +71,22 @@ export function exactOrigins(input: string[], local = false) {
     return value;
   });
 }
+function privateFile(path: string | undefined, kind: string) {
+  requireValue(
+    path,
+    500,
+    "INVALID_CONFIG",
+    `Configure a protected server-only ${kind} file.`,
+  );
+  const metadata = statSync(path);
+  requireValue(
+    metadata.isFile() && (metadata.mode & 0o077) === 0,
+    500,
+    "INVALID_CONFIG",
+    `The ${kind} file must be private to the server account.`,
+  );
+  return readFileSync(path, "utf8").trim();
+}
 export function readConfig(): ServerConfig {
   const origin = process.env.TPM_APP_ORIGIN ?? "https://unconfigured.invalid";
   const local =
@@ -42,20 +94,10 @@ export function readConfig(): ServerConfig {
     process.env.NODE_ENV !== "production" &&
     ["localhost", "127.0.0.1"].includes(new URL(origin).hostname);
   exactOrigins([origin], local);
-  const keyPath = process.env.TPM_STORAGE_KEY_FILE;
-  requireValue(
-    keyPath,
-    500,
-    "INVALID_CONFIG",
-    "Set TPM_STORAGE_KEY_FILE to a protected server-only key file.",
+  const key = Buffer.from(
+    privateFile(process.env.TPM_STORAGE_KEY_FILE, "storage key"),
+    "base64",
   );
-  requireValue(
-    (statSync(keyPath).mode & 0o077) === 0,
-    500,
-    "INVALID_CONFIG",
-    "Storage key file must be private to the server account.",
-  );
-  const key = Buffer.from(readFileSync(keyPath, "utf8").trim(), "base64");
   requireValue(
     key.length === 32,
     500,
@@ -68,10 +110,16 @@ export function readConfig(): ServerConfig {
   mkdirSync(dataDirectory, { recursive: true, mode: 0o700 });
   chmodSync(dataDirectory, 0o700);
   const users = JSON.parse(
-    readFileSync(process.env.TPM_USERS_FILE ?? "/etc/tpm/users.json", "utf8"),
+    privateFile(
+      process.env.TPM_USERS_FILE ?? "/etc/tpm/users.json",
+      "staff allowlist",
+    ),
   ) as Record<string, "administrator" | "viewer">;
   requireValue(
-    Object.keys(users).length > 0 &&
+    users &&
+      !Array.isArray(users) &&
+      typeof users === "object" &&
+      Object.keys(users).length > 0 &&
       Object.values(users).every((role) =>
         ["administrator", "viewer"].includes(role),
       ),
@@ -87,6 +135,22 @@ export function readConfig(): ServerConfig {
     "Configure OIDC issuer and client ID before starting the protected server.",
   );
   const issuerUrl = new URL(issuer);
+  const policy = identityPolicy(
+    process.env.TPM_AUTH_PROVIDER ?? "oidc",
+    issuer,
+    process.env.TPM_GOOGLE_WORKSPACE_DOMAIN,
+  );
+  const bindAddress = process.env.TPM_BIND_ADDRESS ?? "127.0.0.1";
+  const port = Number(process.env.PORT ?? 8787);
+  requireValue(
+    ["127.0.0.1", "0.0.0.0"].includes(bindAddress) &&
+      Number.isInteger(port) &&
+      port > 0 &&
+      port <= 65535,
+    500,
+    "INVALID_CONFIG",
+    "Use a supported bind address and a valid TCP port.",
+  );
   exactOrigins([issuerUrl.origin], local);
   requireValue(
     !issuerUrl.username &&
@@ -97,16 +161,24 @@ export function readConfig(): ServerConfig {
     "INVALID_CONFIG",
     "OIDC issuer is invalid.",
   );
+  const clientSecret = process.env.TPM_OIDC_CLIENT_SECRET_FILE
+    ? privateFile(process.env.TPM_OIDC_CLIENT_SECRET_FILE, "OIDC client secret")
+    : "";
+  requireValue(
+    policy.authProvider !== "google_workspace" || !!clientSecret,
+    500,
+    "INVALID_CONFIG",
+    "The Google web client requires a protected client-secret mount.",
+  );
   return {
+    ...policy,
     origin,
     local,
     dataDirectory,
     storageKey: key,
     issuer,
     clientId: process.env.TPM_OIDC_CLIENT_ID!,
-    clientSecret: process.env.TPM_OIDC_CLIENT_SECRET_FILE
-      ? readFileSync(process.env.TPM_OIDC_CLIENT_SECRET_FILE, "utf8").trim()
-      : "",
+    clientSecret,
     oidcOrigins: exactOrigins(
       (process.env.TPM_OIDC_ALLOWED_ORIGINS ?? issuerUrl.origin).split(","),
       local,
@@ -119,6 +191,7 @@ export function readConfig(): ServerConfig {
       ? resolve(process.env.TPM_CSV_INBOX)
       : null,
     allowScheduledCsv: process.env.TPM_ALLOW_SCHEDULED_CSV === "true",
-    port: Number(process.env.PORT ?? 8787),
+    port,
+    bindAddress: bindAddress as ServerConfig["bindAddress"],
   };
 }

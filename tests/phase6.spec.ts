@@ -12,6 +12,7 @@ async function settings(page: Page) {
   await page
     .getByRole("heading", { name: "Data & Settings", exact: true })
     .waitFor();
+  await page.getByRole("tab", { name: "Data Sources", exact: true }).click();
 }
 async function signIn(page: Page, role = "administrator") {
   await page.goto("/auth/login");
@@ -33,6 +34,9 @@ async function reportPreview(
   raw?: string,
   local = false,
 ) {
+  await page
+    .getByRole("tab", { name: "Imports & History", exact: true })
+    .click();
   await page
     .getByRole("button", { name: `Import ${dataset} report`, exact: true })
     .click();
@@ -184,6 +188,7 @@ test("Data & Settings supports CSV-only local evaluation, all-six source switchi
   ).toContainText("Synthetic Fixtures Services");
   await settings(page);
   await scan(page);
+  await page.getByRole("tab", { name: "Data Sources", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Active data workspace", exact: true })
     .selectOption("demo");
@@ -268,6 +273,9 @@ test("administrator CSV imports persist across reloads with history, replay safe
     page.getByRole("region", { name: "Persistent import history" }),
   ).toContainText("replay");
   await page
+    .getByRole("tab", { name: "Security & Settings", exact: true })
+    .click();
+  await page
     .getByLabel("Aging threshold (calendar days)", { exact: true })
     .fill("10");
   await page
@@ -280,6 +288,7 @@ test("administrator CSV imports persist across reloads with history, replay safe
   await expect(
     page.getByLabel("Aging threshold (calendar days)", { exact: true }),
   ).toHaveValue("10");
+  await page.getByRole("tab", { name: "Data Sources", exact: true }).click();
   await expect(
     page.getByRole("combobox", { name: "Active data workspace", exact: true }),
   ).not.toHaveValue("demo");
@@ -306,6 +315,7 @@ test("administrator CSV imports persist across reloads with history, replay safe
   );
   await page.keyboard.press("Escape");
   await settings(page);
+  await page.getByRole("tab", { name: "Automation", exact: true }).click();
   await expect(
     page.getByText("Not configured / not activated.", { exact: false }),
   ).toBeVisible();
@@ -349,6 +359,7 @@ test("viewer sessions read authorized CSV data but cannot manage imports or see 
   await commitReport(page);
   await reportPreview(page, "vendors", account);
   await commitReport(page);
+  await page.getByRole("tab", { name: "Data Sources", exact: true }).click();
   const sourceId = await page
     .getByRole("combobox", { name: "Active data workspace", exact: true })
     .inputValue();
@@ -358,6 +369,9 @@ test("viewer sessions read authorized CSV data but cannot manage imports or see 
   await viewer
     .getByRole("combobox", { name: "Active data workspace", exact: true })
     .selectOption(sourceId);
+  await viewer
+    .getByRole("tab", { name: "Imports & History", exact: true })
+    .click();
   await expect(
     viewer.getByRole("button", {
       name: "Import workOrders report",
@@ -406,7 +420,7 @@ test("viewer sessions read authorized CSV data but cannot manage imports or see 
   ).toBe(403);
   await viewer.getByRole("button", { name: "Sign out", exact: true }).click();
   await viewer
-    .getByRole("heading", { name: "Synthetic test sign-in", exact: true })
+    .getByRole("heading", { name: "You’re signed out", exact: true })
     .waitFor();
   expect((await viewer.request.get("/api/bootstrap")).status()).toBe(401);
   await viewerContext.close();
@@ -436,6 +450,9 @@ test("Data & Settings remains accessible and fits a constrained desktop iframe",
   await frame
     .getByRole("heading", { name: "Data & Settings", exact: true })
     .waitFor();
+  await frame
+    .getByRole("tab", { name: "Imports & History", exact: true })
+    .click();
   await frame
     .getByRole("button", { name: "Import properties report", exact: true })
     .click();
@@ -470,6 +487,7 @@ test("loss of authentication clears cached managed CSV records even while Demo i
     .click();
   await reportPreview(page, "workOrders", account);
   await commitReport(page);
+  await page.getByRole("tab", { name: "Data Sources", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Active data workspace", exact: true })
     .selectOption("demo");

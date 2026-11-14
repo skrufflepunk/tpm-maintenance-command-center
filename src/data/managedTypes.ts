@@ -64,6 +64,11 @@ export interface ManagedWorkspace {
   notObserved: number;
 }
 export interface ManagedBootstrap {
+  access: {
+    provider: "oidc" | "google_workspace";
+    framingConfigured: boolean;
+    sessionHours: number;
+  };
   user: StaffIdentity;
   csrf: string;
   sources: SourceConfig[];

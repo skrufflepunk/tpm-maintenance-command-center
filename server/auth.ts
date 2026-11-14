@@ -14,6 +14,8 @@ export interface Session {
   csrf: string;
   expires: number;
   selectedSourceId: string | null;
+  authProvider: ServerConfig["authProvider"];
+  workspaceDomain: string | null;
 }
 interface LoginAttempt {
   state: string;
@@ -123,7 +125,10 @@ export class Authentication {
     url.search = new URLSearchParams({
       client_id: this.config.clientId,
       response_type: "code",
-      scope: "openid",
+      scope:
+        this.config.authProvider === "google_workspace"
+          ? "openid email"
+          : "openid",
       redirect_uri: this.config.origin + "/auth/callback",
       state: attempt.state,
       nonce: attempt.nonce,
@@ -132,6 +137,10 @@ export class Authentication {
         .digest("base64url"),
       code_challenge_method: "S256",
     }).toString();
+    if (this.config.authProvider === "google_workspace") {
+      url.searchParams.set("hd", this.config.workspaceDomain!);
+      url.searchParams.set("prompt", "select_account");
+    }
     res.writeHead(302, { Location: url.href });
     res.end();
   }
@@ -260,12 +269,23 @@ export class Authentication {
       "STAFF_ACCESS",
       "This identity is not authorized for the TPM application.",
     );
+    if (this.config.authProvider === "google_workspace") {
+      requireValue(
+        payload.hd === this.config.workspaceDomain &&
+          payload.email_verified === true,
+        403,
+        "WORKSPACE_ACCESS",
+        "Use an explicitly authorized account in the approved Google Workspace organization.",
+      );
+    }
     const sessionToken = token(),
       session: Session = {
         subject: payload.sub,
         csrf: token(),
         expires: Date.now() + 28800000,
         selectedSourceId: null,
+        authProvider: this.config.authProvider,
+        workspaceDomain: this.config.workspaceDomain,
       };
     this.store.set("session", digest(sessionToken), {
       ...session,
@@ -286,6 +306,8 @@ export class Authentication {
     requireValue(
       session &&
         session.expires > Date.now() &&
+        session.authProvider === this.config.authProvider &&
+        session.workspaceDomain === this.config.workspaceDomain &&
         Object.hasOwn(this.config.users, session.subject),
       401,
       "AUTH_REQUIRED",

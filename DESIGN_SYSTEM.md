@@ -1,5 +1,11 @@
 # Design system
 
+## Phase 7 portal and settings layout
+
+Preserve the compact tropical shell and six primary navigation names. Data & Settings remains a utility and now uses four real accessible tabs: Data Sources, Imports & History, Automation, Security & Settings. Tabs support arrows/Home/End, selected/focus states, labeled panels and section-only URL context. Switching sections preserves unsaved form values; reloading restores the section but not unsaved edits. Source/identity changes retain existing safe view resets. Source creation collapses after a source is selected; report import buttons are under Imports & History.
+
+A compact actual-successful-load strip keeps receipt time separate from source report freshness. Settings tables fit a 1060px frame without unnecessary inner horizontal overflow. Normal document scrolling and fixed sidebar remain; dialogs keep focus containment/return. The embedded-only secure-tab link and data-free staff access gate support blocked cookies without a new portal, AI claims, cookie downgrade or framing bypass. No dedicated mobile design is added.
+
 ## Phase 6 Data & Settings presentation
 
 Preserve the existing navy sidebar, original tropical artwork, compact header and exactly six main navigation labels. Data & Settings is a secondary utility link below those destinations, not a seventh main tab. Its compact source/access strip, three capability summaries, dataset health/history tables, explicit mapping/preview dialogs and administrator forms reuse existing semantic tokens, native focus-contained dialogs, text-and-color validation and page-level scrolling.

@@ -167,3 +167,7 @@ private-data/
 secrets/
 
 build-server/
+# Operator-only identity/host files belong outside the repository.
+**/staff-subjects.json
+**/server.env
+!.env.google.example

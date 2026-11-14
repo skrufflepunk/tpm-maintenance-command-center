@@ -25,6 +25,7 @@ export async function testSystem(
     issuerPort?: number;
     origin?: string;
     directory?: string;
+    frameOrigins?: string[];
   } = {},
 ) {
   const directory =
@@ -41,7 +42,14 @@ export async function testSystem(
     string,
     { sub: string; nonce: string; challenge: string; redirect: string }
   >();
-  const controls: { nonce?: string; audience?: string; expired?: boolean } = {};
+  const controls: {
+    nonce?: string;
+    audience?: string;
+    expired?: boolean;
+    hd?: string;
+    emailVerified?: boolean;
+    subject?: string;
+  } = {};
   let issuer = "",
     appOrigin = options.origin ?? "";
   const idp = createServer(async (req, res) => {
@@ -119,9 +127,13 @@ export async function testSystem(
         return json({ error: "invalid_grant" });
       }
       return json({
-        id_token: await new SignJWT({ nonce: controls.nonce ?? entry.nonce })
+        id_token: await new SignJWT({
+          nonce: controls.nonce ?? entry.nonce,
+          hd: controls.hd,
+          email_verified: controls.emailVerified,
+        })
           .setProtectedHeader({ alg: "RS256", kid: jwk.kid })
-          .setSubject(entry.sub)
+          .setSubject(controls.subject ?? entry.sub)
           .setIssuer(issuer)
           .setAudience(controls.audience ?? "synthetic-client")
           .setIssuedAt()
@@ -143,10 +155,13 @@ export async function testSystem(
     clientSecret: "",
     oidcOrigins: [issuer],
     users: { "synthetic-admin": "administrator", "synthetic-viewer": "viewer" },
-    frameOrigins: [],
+    frameOrigins: options.frameOrigins ?? [],
     ingestionDirectory: join(directory, "inbox"),
     allowScheduledCsv: false,
     port: options.port ?? 0,
+    bindAddress: "127.0.0.1",
+    authProvider: "oidc",
+    workspaceDomain: null,
   };
   const store = new EncryptedStore(
       join(directory, "synthetic.sqlite"),
@@ -182,7 +197,12 @@ export async function testSystem(
       bootstrap = (await (
         await fetch(base + "/api/bootstrap", { headers: { Cookie: cookie } })
       ).json()) as { csrf: string };
-    return { cookie, csrf: bootstrap.csrf, role };
+    return {
+      cookie,
+      csrf: bootstrap.csrf,
+      role,
+      setCookie: callback.headers.get("set-cookie")!,
+    };
   };
   return {
     ...app,

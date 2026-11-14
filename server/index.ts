@@ -9,9 +9,16 @@ try {
       config.storageKey,
     ),
     app = createApplication(config, store);
-  app.server.listen(config.port, "127.0.0.1", () =>
+  app.server.on("error", () => {
+    process.stderr.write(
+      "TPM protected server could not bind its configured listener.\n",
+    );
+    store.close();
+    process.exitCode = 1;
+  });
+  app.server.listen(config.port, config.bindAddress, () =>
     process.stdout.write(
-      "TPM protected server listening on loopback. Live Rentvine remains disabled.\n",
+      "TPM protected server listening on its configured interface. Live Rentvine remains disabled.\n",
     ),
   );
   const stop = () =>

@@ -1,4 +1,4 @@
-# Phase 6 implementation status
+# Current verification status — Phase 7 (includes Phase 6)
 
 ## Fully implemented and tested locally
 
@@ -17,3 +17,7 @@ Rentvine API activation, authentication/endpoints/native maintenance fields/pagi
 Cloud-storage/email attachment connectors, multi-instance persistence, durable external job queues/multiple scheduled datasets per source, automated PII redaction, per-property/multi-tenant access policies, credential rotation/migration tooling, identity-provider-wide continuous revocation, live API adapter, accounting integration, financial ingestion/analytics, appointment feeds, verified ratings and numerical vendor quality methodology. Existing financial interfaces remain preparation only.
 
 No public deployment, live production data, company credentials, automated messages, Rentvine writes or main-branch merge are included.
+
+Phase 7 additionally implements/test-prepares four settings sections, keyboard/deep-link/draft behavior, actual successful-load display, data-free framed access and sign-out gates, authenticated-tab fallback, signed Workspace domain/email policy, provider/domain-bound sessions, private role/secret-file guards, a non-root pinned container and ciphertext backup/restore with ephemeral auth/stage exclusion. The existing source and business-rule tests remain. See PHASE7_REVIEW.md for final counts.
+
+Current hosting prices and real Google/portal compatibility remain unverified (external reference access blocked by network policy). The hosting budget is an explicitly unverified planning allowance. VM/proxy templates need host-specific validation; no client/host/Site/service/schedule was activated. Deployment needs the company/operator decisions in PRODUCTION_CHECKLIST.md.

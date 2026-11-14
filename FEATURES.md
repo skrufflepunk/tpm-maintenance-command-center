@@ -1,5 +1,13 @@
 # Features and acceptance criteria
 
+## Phase 7 integration readiness
+
+The existing features remain; Data & Settings is split into Data Sources, Imports & History, Automation, Security & Settings, with keyboard tabs, restorable section links, preserved drafts between sections and honest latest successful CSV-load time. Imports/history/validation/source policies/retention/audit/admin controls remain available under their relevant section. API and automatic delivery remain disabled by default.
+
+Unauthorized root access shows a data-free gate; app assets and maintenance APIs still deny anonymous requests. Framed authorization routes show instructions to sign in in a new tab; successful sign-in can be followed by a frame reload. Signed-in frames offer an authenticated-tab fallback. Dashboard logout shows a signed-out gate without immediately restarting SSO. These are access screens for the existing dashboard, not a second portal.
+
+Prepared Google Workspace mode adds signed exact hosted-domain and verified-email checks to explicit immutable-subject roles. Role access remains server-enforced. Production configuration, actual Google provider/portal verification and final go-ahead remain required. The non-root container/runtime controls and operator encrypted-backup tool are prepared for reviewed hosting; no service is published. See PHASE7_REVIEW.md.
+
 ## Current Phase 6 behavior
 
 All six existing workspaces consume the same selected Demo/CSV work-order source; Overview no longer remains an independent demo after CSV selection. Vendor/property catalogs keep dataset provenance and only join on verified same-account scoped identifiers. Fictional and operational records never mix. Each page retains its existing independently labeled filters, drills, rules and copy-only templates.

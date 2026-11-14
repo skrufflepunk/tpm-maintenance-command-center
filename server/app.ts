@@ -9,6 +9,7 @@ import { ManagementService } from "./management";
 import { CsvDeliveryWorker } from "./delivery";
 import { SafeError, requireValue } from "./errors";
 import { rentvineStatus } from "./integrations/rentvine";
+import { accessPage } from "./accessPage";
 import type {
   DatasetKind,
   ImportOptions,
@@ -93,6 +94,26 @@ export function createApplication(
           );
         }
       }
+      const framed = ["iframe", "frame"].includes(
+        req.headers["sec-fetch-dest"] as string,
+      );
+      if (path === "/auth/signed-out" && method === "GET") {
+        try {
+          auth.session(req);
+          res.writeHead(302, { Location: config.origin + "/" });
+          return res.end();
+        } catch (error) {
+          if (error instanceof SafeError && error.code === "AUTH_REQUIRED")
+            return accessPage(res, config, true);
+          throw error;
+        }
+      }
+      if (
+        framed &&
+        ["/auth/login", "/auth/callback"].includes(path) &&
+        method === "GET"
+      )
+        return accessPage(res, config);
       if (path === "/auth/login" && method === "GET")
         return await auth.login(res);
       if (path === "/auth/callback" && method === "GET")
@@ -101,9 +122,13 @@ export function createApplication(
       try {
         current = auth.session(req);
       } catch (error) {
-        if (!path.startsWith("/api/") && method === "GET") {
-          res.writeHead(302, { Location: "/auth/login" });
-          return res.end();
+        if (
+          error instanceof SafeError &&
+          error.code === "AUTH_REQUIRED" &&
+          ["/", "/index.html"].includes(path) &&
+          method === "GET"
+        ) {
+          return accessPage(res, config);
         }
         throw error;
       }
@@ -139,6 +164,11 @@ export function createApplication(
                   : { ...source, presets: {} },
               ),
             settings: management.settings(),
+            access: {
+              provider: config.authProvider,
+              framingConfigured: config.frameOrigins.length > 0,
+              sessionHours: 8,
+            },
             ingestion: {
               configured:
                 config.allowScheduledCsv && !!config.ingestionDirectory,

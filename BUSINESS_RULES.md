@@ -1,5 +1,13 @@
 # Business rules
 
+## Phase 7 access and presentation rules
+
+All Phase 6 maintenance calculations, data provenance, snapshot/upsert/retention, missing-data semantics and API/delivery gates remain unchanged. Most recent successful CSV load uses actual retained acceptance timestamps across selected-source datasets; repeat-check time and original source report time stay distinct. Placeholder not-imported workspace creation is never labeled a successful data load. Receipt/audit display remains Mexico City; source calculations keep declared source timezone.
+
+In Google Workspace mode, exact signed hosted domain and verified-email status are mandatory in addition to signed issuer/audience/nonce/expiry and explicit immutable-subject role authorization. A domain/email suffix/Site membership alone never grants access. Provider/domain changes and expired/revoked sessions deny protected data; old Phase 6 sessions require sign-in after upgrade. The data-free access page is not anonymous data access. Logout remains local to the dashboard, not Google global logout. No cookie/header workaround may weaken authorization to make framing work.
+
+Settings navigation uses only four whitelisted public section identifiers and retains unsaved controls while switching sections. Backup retention remains an operator policy; exported ciphertext backups exclude sessions/login/stages and cannot revive logged-out sessions on restore. No source fact, rating, historical trend, real credential or live endpoint is invented. No source write, automatic message or production integration is enabled.
+
 ## Phase 6 source, retention and access rules
 
 1. One selected work-order source drives all six sections, including Overview. Demo and CSV never merge. Independent page filters remain unchanged. Catalog joins require same mode/account plus verified stable-ID namespace; unresolved IDs remain explicit.

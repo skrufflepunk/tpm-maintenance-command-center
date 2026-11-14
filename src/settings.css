@@ -155,6 +155,9 @@
   table-layout: fixed;
   font-size: 11px;
 }
+.data-settings .table-scroll table {
+  min-width: 0;
+}
 .data-settings th,
 .data-settings td {
   padding: 10px 9px;
@@ -198,5 +201,99 @@
   .settings-utility {
     padding: 7px 12px;
     margin-top: 0;
+  }
+}
+.settings-refresh {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 14px;
+  background: #fff;
+  border: 1px solid #d1deef;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #193d6c;
+}
+.settings-refresh > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.settings-refresh strong,
+.settings-refresh time {
+  display: block;
+}
+.settings-refresh span,
+.settings-refresh small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #52647c;
+}
+.settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 5px;
+  background: #e8eff9;
+  border: 1px solid #c8d9ee;
+  border-radius: 9px;
+}
+.settings-tabs button {
+  flex: 1 1 160px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: #214469;
+  font-size: 12px;
+  font-weight: 650;
+}
+.settings-tabs button[aria-selected="true"] {
+  color: #fff;
+  background: #0055db;
+  box-shadow: 0 2px 5px #163a6720;
+}
+.settings-tabs button:hover:not([aria-selected="true"]) {
+  background: #d9e6f9;
+}
+.settings-tab-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  outline-offset: 4px;
+}
+.settings-tab-panel[hidden] {
+  display: none;
+}
+.data-settings .settings-new-source {
+  margin: 0;
+}
+.settings-new-source > summary {
+  padding: 10px 12px;
+  border-top: 1px solid #dae3f0;
+}
+.portal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  color: #193d6c;
+  background: #eef4ff;
+  border: 1px solid #c8d9ee;
+  border-radius: 7px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.portal-toolbar a {
+  color: #004bc2;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 1000px) {
+  .settings-refresh {
+    align-items: start;
+    flex-direction: column;
   }
 }

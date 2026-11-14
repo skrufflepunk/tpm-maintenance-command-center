@@ -1,8 +1,27 @@
 # TPM Maintenance Command Center
 
-An internal, read-only React/TypeScript maintenance dashboard. All six workspaces are implemented: Overview, Work Orders, Action Center, Vendors, Properties and Analytics. Phase 6 adds **Data & Settings**, unified Demo/CSV source selection and a protected server for approved CSV operation. Rentvine API approval is **not required** for the CSV route. API synchronization remains disabled pending ownership approval and verified documentation.
+An internal, read-only React/TypeScript maintenance dashboard. All six workspaces are implemented: Overview, Work Orders, Action Center, Vendors, Properties and Analytics. Phase 6 adds **Data & Settings**, unified Demo/CSV source selection and a protected server for approved CSV operation. Phase 7 adds four settings sections, Google Workspace policy preparation, safe Google Sites sign-in/fallback, a non-root deployment image and operator backup/runbook artifacts. Rentvine API approval is **not required** for the CSV route. API synchronization remains disabled pending ownership approval and verified documentation.
 
 No live Rentvine connection, source writes, message sending, real company data, public deployment or merge is included. The included records, browser demonstrations and identity provider are synthetic.
+
+## Phase 7 deployment preparation
+
+The existing restricted Google Sites Team Portal remains the main interface. The HTTPS embedding service independently authenticates staff; its root/sign-out gates contain no maintenance data. Google mode requires signed Workspace-domain/verified-email checks plus explicit administrator/viewer subjects. Framed sign-in opens a user-controlled tab, with a secure same-dashboard fallback if embedded cookies are blocked. No live Google client, secret, account, public service or Site is configured here.
+
+Data & Settings has **Data Sources**, **Imports & History**, **Automation**, and **Security & Settings**. Imports move to their own section; keyboard tab navigation, section reload links, draft preservation while switching panels and actual latest-successful CSV-load time improve the desktop workflow. Existing calculations/data-source boundaries remain unchanged. Old Phase 6 sessions sign in again after upgrading; encrypted records are compatible.
+
+Recommended planning architecture: one always-on managed web service with private persistent disk and the prepared Node 24 non-root image, subject to actual platform verification. Budget **US$30–50/month**, explicitly unverified planning allowance. No purchase/deployment is authorized. See:
+
+- [Hosting comparison and costs](docs/HOSTING_OPTIONS.md)
+- [Google Workspace administrator setup](docs/GOOGLE_WORKSPACE.md)
+- [Exact Google Sites embed/fallback steps](docs/GOOGLE_SITES.md)
+- [Environment/secret/security checklist and TPM approvals needed](docs/PRODUCTION_CHECKLIST.md)
+- [Container/VM/backup operator runbook](ops/README.md)
+- [Phase 7 review and local test limits](PHASE7_REVIEW.md)
+
+The Dockerfile pins a verified Node image digest, keeps runtime dependencies only, and has no deploy/publish automation. VM service/proxy templates are examples to review, not installed services. An encrypted consistent backup CLI (`node build-server/backup.mjs SOURCE_DATABASE PRIVATE_BACKUP_FILE`) excludes ephemeral sessions/login/stages; key custody and off-host retention remain operator responsibilities. `scripts/test-container.sh IMAGE_TAG` runs a synthetic non-root runtime smoke without network or published ports after a reviewed local image build. Do not use the test identity service as production authentication.
+
+Actual provider docs/pricing/Google metadata were blocked by network policy during this task. Real host/Workspace/Google Sites cookie/ancestor behavior, permissions and backup restore still need approved hosted acceptance. API and automatic delivery stay off, and the CSV route remains independent of API approval.
 
 ## Local synthetic evaluation
 
@@ -21,7 +40,7 @@ The unchanged fixture has 24 fictional work orders, three properties and three v
 
 ## CSV operating route
 
-Open the sidebar utility **Data & Settings**. Map actual report headers, review enum mappings, declare account/scope/timezone/report time and validate before committing. Work-order, vendor and property reports are separate. Actual Rentvine headers have not been verified; no native names are assumed. Stable IDs are mandatory, duplicate IDs block commits, and catalog joins require explicit verified ID equivalence and the same account/source mode. A vendor-only/property-only CSV workspace does not borrow fictional work orders.
+Open the sidebar utility **Data & Settings → Imports & History**. Map actual report headers, review enum mappings, declare account/scope/timezone/report time and validate before committing. Work-order, vendor and property reports are separate. Actual Rentvine headers have not been verified; no native names are assumed. Stable IDs are mandatory, duplicate IDs block commits, and catalog joins require explicit verified ID equivalence and the same account/source mode. A vendor-only/property-only CSV workspace does not borrow fictional work orders.
 
 All six sections use the same selected work-order source, including Overview; page filters remain independent. Demo records never merge with CSV. Full snapshots archive absent records separately from active totals, without inferring closure. Incremental upsert retains disclosed last-known rows and does not invent comparable history. Replays do not duplicate records or create artificial observations. Failed, stale or invalid imports retain the last successful dataset.
 

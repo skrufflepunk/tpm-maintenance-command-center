@@ -385,6 +385,14 @@ export default function App() {
           </div>
         </header>
         <main id="main-content" ref={mainRef} tabIndex={-1} className="main">
+          {window.self !== window.top && (
+            <div className="portal-toolbar" aria-label="Team Portal frame">
+              <span>Team Portal view · protected staff session</span>
+              <a href={location.href} target="_blank" rel="noopener noreferrer">
+                Open dashboard in a secure tab
+              </a>
+            </div>
+          )}
           <div className="page-heading">
             <div>
               <p className="eyebrow">YOUR MAINTENANCE WORKSPACE</p>
@@ -408,7 +416,9 @@ export default function App() {
                         ? "Review source-qualified priorities and prepare local follow-up drafts."
                         : tab === "Properties"
                           ? "Inspect source-qualified property maintenance and review signals."
-                          : "Explore available maintenance records, cohorts and observed trends."}
+                          : tab === "Data & Settings"
+                            ? "Choose reports, check import history, and manage authorized settings."
+                            : "Explore available maintenance records, cohorts and observed trends."}
               </p>
             </div>
             <button

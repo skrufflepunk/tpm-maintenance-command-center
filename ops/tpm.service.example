@@ -1,0 +1,29 @@
+# Review/install manually only on an approved host; no service is enabled here.
+[Unit]
+Description=TPM protected maintenance dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tpm
+Group=tpm
+WorkingDirectory=/opt/tpm/current
+EnvironmentFile=/etc/tpm/server.env
+ExecStart=/usr/bin/node /opt/tpm/current/build-server/index.mjs
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+StateDirectory=tpm-command-center
+StateDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/tpm-command-center
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

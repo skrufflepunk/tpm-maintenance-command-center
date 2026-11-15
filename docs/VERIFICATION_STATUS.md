@@ -1,23 +1,17 @@
-# Current verification status — Phase 7 (includes Phase 6)
+# Current verification status — Phase 8 static edition
 
-## Fully implemented and tested locally
+## Implemented locally
 
-Unified Demo/CSV source behavior across all six workspaces; a Data & Settings utility; explicit work-order/vendor/property CSV mappings and previews; stable-ID/enum/date validation; duplicate rejection/idempotency; snapshot versus disclosed incremental upsert; protected source approval; encrypted SQLite persistence; original mapped values retained server-only; record archives and import/audit history; safe failed/stale-preview/storage rollback; retention; separate dataset freshness/check times; OIDC code/PKCE/JWKS/nonce authentication tested with a synthetic provider; server-enforced administrator/viewer roles, CSRF, logout, contact masking and exact-origin framing policy. Prior phases' relevant functionality remains tested, with Overview intentionally changed to follow the unified source as required by Phase 6.
+All six existing sections, browser-only CSV mapping/validation with isolated normalized data, bounded IndexedDB persistence, current/prior observations, local rules/review preferences and history; JSON export/schema/checksum/CSV-validated restore; confirmed clear and same-partition cross-tab notifications; quota/stale-write rollback, corrupt-data quarantine and blocked-storage temporary mode. Relative production assets/hash routes, project-path/cross-origin iframe and new-tab behavior are tested with synthetic data. See [Phase 8 review](../PHASE8_REVIEW.md) for final counts.
 
-## Implemented but requiring operator/company configuration
+## Prepared, owner configuration/publication required
 
-Actual identity-provider client, immutable staff subject allowlist, server-only storage/identity secret mounts, reviewed report mappings/audience/timezone/retention, durable protected disk and backups, HTTPS host and exact portal ancestor origins. The optional filesystem CSV delivery worker and processing intervals require BOTH a server operator gate/private inbox and an approved administrator mapping/schedule. All production ingestion gates remain off in this development task.
+Pinned manual-only GitHub Actions workflow with review default, explicit `PUBLISH` intent and passing checks before dist-only deployment. Owner must review public repository/history/eligibility and choose the intended static/default branch, Pages source/environment and final manual dispatch. The unchanged Phase 7 server remains separately preserved at `1f8a0e1`.
 
-## Blocked pending authorization or external evidence
+## Not performed/verified externally
 
-Rentvine API activation, authentication/endpoints/native maintenance fields/pagination/quotas/read scopes; actual Rentvine automatic report generation/delivery; real identity/hosting/Google Sites session/cookie/framing certification. Public documentation fetches were blocked, so no verified Rentvine API capabilities are claimed. API mode is disabled server-side, not a fake working client. Ownership approval is still required; manual CSV does not depend on it.
+No push/merge/visibility change, workflow dispatch, GitHub Pages publication, actual Google Site edit/embed/publication, live browser policy acceptance or real record test is performed. Owner must verify the published URL/frame/storage/download behavior after approving publication. Local fixtures do not certify Google/GitHub service behavior. $0 assumes an eligible Free public repository and ordinary standard-service limits.
 
-## Planned but not implemented
+## Deliberately unavailable in this edition
 
-Cloud-storage/email attachment connectors, multi-instance persistence, durable external job queues/multiple scheduled datasets per source, automated PII redaction, per-property/multi-tenant access policies, credential rotation/migration tooling, identity-provider-wide continuous revocation, live API adapter, accounting integration, financial ingestion/analytics, appointment feeds, verified ratings and numerical vendor quality methodology. Existing financial interfaces remain preparation only.
-
-No public deployment, live production data, company credentials, automated messages, Rentvine writes or main-branch merge are included.
-
-Phase 7 additionally implements/test-prepares four settings sections, keyboard/deep-link/draft behavior, actual successful-load display, data-free framed access and sign-out gates, authenticated-tab fallback, signed Workspace domain/email policy, provider/domain-bound sessions, private role/secret-file guards, a non-root pinned container and ciphertext backup/restore with ephemeral auth/stage exclusion. The existing source and business-rule tests remain. See PHASE7_REVIEW.md for final counts.
-
-Current hosting prices and real Google/portal compatibility remain unverified (external reference access blocked by network policy). The hosting budget is an explicitly unverified planning allowance. VM/proxy templates need host-specific validation; no client/host/Site/service/schedule was activated. Deployment needs the company/operator decisions in PRODUCTION_CHECKLIST.md.
+Server authentication/roles, encrypted shared database, API credentials/live Rentvine calls, scheduled delivery/generation, cloud sync, server incremental upsert/archives/audit, financial/appointment/rating integrations. Local data/backups are unencrypted, browser/partition scoped and not an authoritative audit trail. Those differences are disclosed rather than simulated. Maintenance remains read-only and drafts copy-only.

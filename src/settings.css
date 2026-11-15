@@ -297,3 +297,18 @@
     flex-direction: column;
   }
 }
+.static-notice {
+  font-size: 11px;
+  color: #254563;
+  background: #f1f6fc;
+  padding: 8px 12px;
+  border: 1px solid #cfdbec;
+  border-radius: 7px;
+  line-height: 1.6;
+  margin: 8px 0;
+}
+.static-notice a {
+  color: #004bc2;
+  font-weight: 650;
+  text-decoration: underline;
+}

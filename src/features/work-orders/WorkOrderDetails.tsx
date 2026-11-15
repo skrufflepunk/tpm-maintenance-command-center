@@ -72,7 +72,7 @@ export function WorkOrderDetails({
       <span className="demo-pill">
         {snapshot.sourceMode === "demo"
           ? "Fictional work order"
-          : "CSV evaluation record · session only"}
+          : "Browser-local CSV record"}
       </span>
       <h3 className="detail-title">Read-only work order details</h3>
       <dl className="record-details">

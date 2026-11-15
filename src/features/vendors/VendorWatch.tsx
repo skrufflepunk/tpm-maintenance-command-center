@@ -51,7 +51,6 @@ export function VendorWatch({
   onOpenAction,
 }: Props) {
   const {
-    managed,
     source,
     csv,
     vendorSource,
@@ -108,13 +107,12 @@ export function VendorWatch({
           <button
             className="text-button"
             onClick={() => {
-              if (managed) location.hash = "Data & Settings";
-              else setImportOpen(true);
+              setImportOpen(true);
             }}
           >
             Import vendor CSV
           </button>
-          {vendorCsv && !managed && (
+          {vendorCsv && (
             <button className="text-button" onClick={clearVendorCsv}>
               Clear vendor CSV
             </button>

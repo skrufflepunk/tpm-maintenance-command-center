@@ -1,112 +1,55 @@
-# TPM Maintenance Command Center
+# TPM Maintenance Command Center — Free Static Edition
 
-An internal, read-only React/TypeScript maintenance dashboard. All six workspaces are implemented: Overview, Work Orders, Action Center, Vendors, Properties and Analytics. Phase 6 adds **Data & Settings**, unified Demo/CSV source selection and a protected server for approved CSV operation. Phase 7 adds four settings sections, Google Workspace policy preparation, safe Google Sites sign-in/fallback, a non-root deployment image and operator backup/runbook artifacts. Rentvine API approval is **not required** for the CSV route. API synchronization remains disabled pending ownership approval and verified documentation.
+Phase 8 is a **single-user, browser-only dashboard** for free GitHub Pages hosting and embedding in the existing Google Site. Overview, Work Orders, Action Center, Vendors, Properties and Analytics retain the existing TPM desktop design, shared rules, filters, charts and read-only workflows. Rentvine is never modified; drafts remain editable and copy-only.
 
-No live Rentvine connection, source writes, message sending, real company data, public deployment or merge is included. The included records, browser demonstrations and identity provider are synthetic.
+**GitHub Pages is public hosting. Google Sites access restrictions do not protect the hosted app or its direct URL.** There is no sign-in, server authorization, API key, backend process, paid hosting service or cloud data synchronization in this edition. Visitors start with clearly fictional demo data; their CSV imports are processed locally and are not uploaded by the app.
 
-## Phase 7 deployment preparation
+## Run and verify locally
 
-The existing restricted Google Sites Team Portal remains the main interface. The HTTPS embedding service independently authenticates staff; its root/sign-out gates contain no maintenance data. Google mode requires signed Workspace-domain/verified-email checks plus explicit administrator/viewer subjects. Framed sign-in opens a user-controlled tab, with a secure same-dashboard fallback if embedded cookies are blocked. No live Google client, secret, account, public service or Site is configured here.
-
-Data & Settings has **Data Sources**, **Imports & History**, **Automation**, and **Security & Settings**. Imports move to their own section; keyboard tab navigation, section reload links, draft preservation while switching panels and actual latest-successful CSV-load time improve the desktop workflow. Existing calculations/data-source boundaries remain unchanged. Old Phase 6 sessions sign in again after upgrading; encrypted records are compatible.
-
-Recommended planning architecture: one always-on managed web service with private persistent disk and the prepared Node 24 non-root image, subject to actual platform verification. Budget **US$30–50/month**, explicitly unverified planning allowance. No purchase/deployment is authorized. See:
-
-- [Hosting comparison and costs](docs/HOSTING_OPTIONS.md)
-- [Google Workspace administrator setup](docs/GOOGLE_WORKSPACE.md)
-- [Exact Google Sites embed/fallback steps](docs/GOOGLE_SITES.md)
-- [Environment/secret/security checklist and TPM approvals needed](docs/PRODUCTION_CHECKLIST.md)
-- [Container/VM/backup operator runbook](ops/README.md)
-- [Phase 7 review and local test limits](PHASE7_REVIEW.md)
-
-The Dockerfile pins a verified Node image digest, keeps runtime dependencies only, and has no deploy/publish automation. VM service/proxy templates are examples to review, not installed services. An encrypted consistent backup CLI (`node build-server/backup.mjs SOURCE_DATABASE PRIVATE_BACKUP_FILE`) excludes ephemeral sessions/login/stages; key custody and off-host retention remain operator responsibilities. `scripts/test-container.sh IMAGE_TAG` runs a synthetic non-root runtime smoke without network or published ports after a reviewed local image build. Do not use the test identity service as production authentication.
-
-Actual provider docs/pricing/Google metadata were blocked by network policy during this task. Real host/Workspace/Google Sites cookie/ancestor behavior, permissions and backup restore still need approved hosted acceptance. API and automatic delivery stay off, and the CSV route remains independent of API approval.
-
-## Local synthetic evaluation
-
-Requires **Node 24+** (validated with Node 24.22.1/npm 11.9.0).
+Node 24+ is needed only for development/building; the published site needs a modern desktop Chrome/Edge browser, not a running Node server.
 
 ```bash
 npm ci
 npm run dev -- --port 5173
-```
-
-Run from this repository. If the default npm cache is not writable, use `npm ci --cache /workspace/.npm-cache`. Vite binds to `0.0.0.0` for private cloud development; use supported private forwarding only. Never publish this development server or use it for operational records. No external services or credentials are needed for Demo or local synthetic/redacted CSV evaluation.
-
-The root [.env.example](.env.example) documents `VITE_DATA_MODE=demo`, the only supported public initial mode. **All `VITE_` values are public.** Runtime CSV selection is managed by the workspace, not by placing data or credentials in environment variables. Local imports and drafts are memory-only; browser reload clears local evaluation. No records/tokens are persisted to localStorage/sessionStorage.
-
-The unchanged fixture has 24 fictional work orders, three properties and three vendors, including missing dates, unknown statuses/assignments and an unresolved property relationship. Its fixed report time is November 13, 2026 at 14:00 UTC. Its illustrative `America/Mexico_City` timezone and rule defaults are not approved operational settings. Unknown facts remain unknown; historical comparisons, appointments, ratings, costs and AI functionality are not fabricated.
-
-## CSV operating route
-
-Open the sidebar utility **Data & Settings → Imports & History**. Map actual report headers, review enum mappings, declare account/scope/timezone/report time and validate before committing. Work-order, vendor and property reports are separate. Actual Rentvine headers have not been verified; no native names are assumed. Stable IDs are mandatory, duplicate IDs block commits, and catalog joins require explicit verified ID equivalence and the same account/source mode. A vendor-only/property-only CSV workspace does not borrow fictional work orders.
-
-All six sections use the same selected work-order source, including Overview; page filters remain independent. Demo records never merge with CSV. Full snapshots archive absent records separately from active totals, without inferring closure. Incremental upsert retains disclosed last-known rows and does not invent comparable history. Replays do not duplicate records or create artificial observations. Failed, stale or invalid imports retain the last successful dataset.
-
-For approved operational CSV data, configure the protected server first:
-
-1. Review [CSV-only setup](docs/CSV_ONLY.md) and [deployment/security architecture](docs/DEPLOYMENT.md).
-2. Configure an approved OIDC client, immutable staff subject/role allowlist, protected storage key/secret mounts, durable private disk, HTTPS host and reviewed privacy/retention policy using [server/.env.example](server/.env.example).
-3. Build and run the protected server under the approved service manager/reverse proxy:
-
-   ```bash
-   npm ci
-   npm run build
-   node --env-file=/etc/tpm/server.env build-server/index.mjs
-   ```
-
-Production protects app assets and data endpoints independently of Google Sites. Node listens on loopback by default. Administrators approve sources, import reports and manage configuration/retention/audit; viewers read authorized datasets with vendor email/phone withheld. Encrypted SQLite stores normalized records, original mapped cells, import history and safe audit metadata. Secrets remain server-only. Original unmapped columns are discarded, not logged or sent back to browsers.
-
-Optional scheduled processing requires both operator configuration of a private filesystem inbox and an administrator-approved saved mapping/schedule. It processes files **after delivery**; Rentvine report generation/delivery is unverified. All production processing gates remain off here. Cloud/email connectors are not implemented.
-
-## Existing workspaces
-
-- **Overview:** Morning Briefing, five scoped KPIs, status/aging/category/event charts, vendor workload, property heatmap, sortable records and honest data health.
-- **Work Orders:** searchable/sortable/filterable/paginated register, source-qualified details, dates/approval/assignment coverage and read-only next recommendations.
-- **Action Center:** deterministic multi-reason follow-up queue, interactive Morning Briefing, compatible retained-observation evidence and editable copy-only drafts. No messages are sent.
-- **Vendors:** scoped directory, verified workload joins, profiles, evidence/sample-qualified scorecards and copy-only drafts. Missing ratings/appointments remain unavailable.
-- **Properties:** supplied zero-workload entities, unknown relationship group, filters/profiles and configurable count-based review signals. Repeated categories do not prove recurring defects.
-- **Analytics:** actual-event charts, scoped breakdowns, precision-qualified completion cohorts, comparisons and compatible retained observations. No reconstructed backlog curve or financial values.
-
-Core rules stay shared and validated. Authenticated CSV uses administrator-configured aging/follow-up/review/freshness/retention policies; local Demo settings remain illustrative. Source-date calculations keep each report's declared timezone; receipt/audit display uses Mexico City. Changing source/identity resets source-bound views and drafts. Authentication loss clears cached operational datasets even while Demo is selected.
-
-## Verification and synthetic demonstration
-
-```bash
 npm run build
 npm run lint
 npm test
 npm run test:e2e
+npm run test:pages
 ```
 
-Build checks strict client/server TypeScript, produces Vite assets and bundles the protected server. Unit tests include domain calculations, parsers, persistence, rollback, ingestion gates and signed mock-OIDC/security tests. Browser tests automatically start Vite and explicitly synthetic loopback test services, exercise existing workspaces plus protected CSV roles/source switching, and scan WCAG rules. The synthetic identity provider generates ephemeral test keys and is excluded from the production server entrypoint. Never use it for operational identity.
+If the default npm cache is not writable in this workspace, use `npm ci --cache /workspace/.npm-cache`. Local Vite/preview is for development only. `build` runs strict TypeScript, produces static `dist/` assets with relative paths, applies a production Content Security Policy and checks for backend/credential/report artifacts. `test:pages` serves that built bundle under a project path and in a synthetic cross-origin iframe; it does not contact GitHub Pages or publish anything. The local fixture HTTP servers are test tools, not an application backend.
 
-The default browser matrix is Chrome at 1366/1440/1920px and Edge at 1440px when installed, with local 1060×620 iframe and basic narrower reflow coverage. This does not certify a real Google Site. Browser binaries may be selected using `CHROME_PATH`, `EDGE_PATH` or `CHROMIUM_PATH`; otherwise the prepared `/workspace/browser-cache` runtimes or `/usr/bin/chromium` are used. Optional `python3 scripts/prepare-desktop-browsers.py` retrieves official manifests/packages with SHA-256 verification. Existing mobile checks remain opt-in via `LEGACY_MOBILE_TESTS=1 npm run test:e2e -- --project=mobile`; dedicated mobile work is not the current development target.
+The regular browser matrix uses Chrome at 1366/1440/1920px and Edge at 1440px when installed; CI can use Playwright's downloaded Chromium. Optional legacy narrow/mobile checks remain opt-in. No dedicated mobile feature work is included. Screenshots/traces use synthetic records only and stay outside published assets.
 
-For a focused CSV demonstration:
+## Browser CSV workflow
 
-```bash
-npm run test:e2e -- --project=desktop tests/phase6.spec.ts
-```
+Use **Data & Settings → Imports & History**, or the existing Work Orders/Vendors import controls. Upload work-order, vendor and property reports separately, map actual headers and enum values explicitly, declare account/scope/timezone/report date, validate and review before loading. No Rentvine-native column names or API fields are assumed. Stable IDs are required; duplicate/missing IDs reject the candidate. Unknown/invalid optional fields remain unknown with coverage warnings. Vendor/property joins need verified ID namespaces and the same account; names never create joins. Demo rows never fill CSV gaps.
 
-See [demonstration steps and illustrative CSV](docs/CSV_DEMO.md), [Phase 6 review/test evidence](PHASE6_REVIEW.md) and [verification status](docs/VERIFICATION_STATUS.md). Screenshots use synthetic data and are saved outside Git; test traces/results are ignored.
+Imports replace that dataset's current observed snapshot. The previous work-order/vendor observation remains separate for compatible comparisons and missing-row evidence; absence never means closure/deletion. Full reports may still be partial in scope. The static edition has no server upsert/archives, multi-user role management or scheduled processing. Those server features remain available on the preserved Phase 7 branch.
 
-## API, embedding and external prerequisites
+All six sections follow the selected Demo/CSV workspace while keeping independent page filters. Configurable local aging/follow-up/property review/scorecard settings use the original shared domain functions. Source calculations keep each report's declared timezone; receipt/audit-style display uses Mexico City. No appointments, ratings, costs, history or AI claims are invented.
 
-[API setup if approved](docs/API_ROUTE.md) describes the evidence/authorization required before implementing a real reader. The server-only typed adapter is explicitly unavailable; no Rentvine endpoint/authentication/pagination/rate-limit/native-field capability has been verified. Public documentation retrieval was blocked in this environment. No live credentials are requested, generated or activated.
+## Local storage, backup and clear
 
-[Google Sites instructions](docs/DEPLOYMENT.md#google-sites-steps-and-required-real-portal-tests) require separate application authentication. Framing defaults to denied, with exact HTTPS ancestor allowlisting only after review. Production cookies are Secure/HttpOnly/SameSite=None but browsers may block third-party cookies. Use authenticated top-level access if the protected iframe cannot function. No actual host, company identity provider, portal ancestor chain, TLS/backup system or real cookie behavior has been configured/tested here.
+Validated mapped columns and metadata are stored in **IndexedDB**, scoped to this app's URL path. Unmapped report columns are discarded. The app caps saved state at **12 MiB**; each CSV remains limited to **2 MiB, 10,000 rows, 100 columns and 500 characters per mapped cell**. It retains current/previous work-order and vendor reports, the current property report, local settings and up to 50 load/replay entries. Actual browser quota/policy may be lower. Failed/quota/stale-tab writes retain the previous saved data. Corrupt stored data is quarantined for explicit clear/restore rather than silently overwritten.
 
-## Code and specifications
+**Data & Settings → Local Data & Backups** provides JSON export, validated restore preview and confirmed clear-data controls. Backup JSON contains mapped report values, receipt times, settings and local history. A SHA-256 integrity check detects accidental changes; it is not a signature or access control. Restores re-run schema and CSV validation before replacing anything. Clear removes this edition's reports/history/settings and resets the local view, including other open tabs in the same storage partition when BroadcastChannel is available; it leaves unrelated apps/site keys alone. Existing downloads, other browser profiles/partitions/devices and forensic disk recovery are outside these controls.
 
-| Location | Responsibility |
-| --- | --- |
-| `src/app`, `src/features` | Shared shell and six workspaces plus Data & Settings |
-| `src/domain`, `src/config` | Typed records, shared pure calculations and validated policies |
-| `src/data` | Demo/CSV parsers, normalized contracts, source coordination and protected client |
-| `server` | Authentication, authorization, encrypted persistence, imports and optional file processing |
-| `server/integrations` | Disabled typed Rentvine reader interface |
-| `tests`, `test-support` | Synthetic browser workflows and test-only services |
+**Local data and backups are not encrypted or password-protected.** Anyone using the same browser profile/origin may access them. GitHub project paths are not origin security boundaries: other apps on `OWNER.github.io` share that origin. Use a dedicated trusted Pages origin/account and browser profile, minimize/redact reports, protect downloaded backups and export regularly. Browser eviction, private browsing, device/profile changes or site-data clearing can lose data. Embedded and top-level storage may be partitioned; export/restore when moving between them. If storage is blocked, the app explicitly falls back to temporary memory and offers a new-tab path. There is no silent cloud backup or guaranteed durable storage.
 
-Read [AGENTS.md](AGENTS.md), PROJECT.md, DESIGN_SYSTEM.md, FEATURES.md, DATA_SCHEMA.md, ARCHITECTURE.md and BUSINESS_RULES.md before development. Their Phase 6 current-release sections supersede historical independent Overview/vendor source and session-only operational limits. Historical reviews remain in REVIEW.md and PHASE2_REVIEW.md through PHASE5_REVIEW.md. The approved navy sidebar, original palm/mountain artwork, six main navigation labels and desktop-first design are preserved.
+## Publishing and Google Sites
+
+See [GitHub Pages instructions](docs/DEPLOYMENT.md), [Google Sites embed steps](docs/GOOGLE_SITES.md), [local data guide](docs/CSV_ONLY.md), and [static security checklist](docs/PRODUCTION_CHECKLIST.md).
+
+The prepared [Pages workflow](.github/workflows/pages.yml) has **only `workflow_dispatch`**, no push/PR/schedule trigger. It defaults to review-only. Publishing additionally requires the manual publish checkbox, exact `PUBLISH` confirmation, passing build/lint/unit/audit/production-browser checks and the Pages environment gate. Third-party actions are pinned to upstream tag SHAs verified during preparation. Only reviewed `dist/` is uploaded; source reports, browser databases, JSON backups, tests and traces are excluded. No workflow or Pages deployment was run in this task.
+
+The $0 route assumes an eligible **GitHub Free public repository**, normal Pages/Actions limits and the free `github.io` URL; no custom domain or paid runner is required. Private-repository Pages availability can depend on a paid plan. Review the entire repository/history for confidential material before making anything public; use a clean public static-only repository if needed. Do not change visibility or publish the historical server repository blindly.
+
+Use Google Sites **Insert → Embed → By URL** with the published HTTPS project URL. Prefer 1060px+ actual content width and 800–1000px height; the tested constrained frame is 1060×620. Hash navigation and relative assets work at repository subpaths. If browser policy blocks storage/downloads, use **Open dashboard in a new tab** and transfer a private local backup as needed. Actual published Site/browser acceptance remains a user step after approved publication; local tests do not certify a real Google Site.
+
+## Preserved server edition
+
+The complete Phase 7 server implementation is unchanged at **`1f8a0e1`** on **`archive/phase-7-server`** and **`feat/phase-7-sites-readiness`**. It includes OIDC/roles, encrypted server SQLite, optional gated delivery and server deployment artifacts. This static branch intentionally removes those runtime requirements. Branch preservation is local in this workspace; push the archive separately when preparing a remote review. No branch is merged or published automatically.
+
+See [PHASE8_REVIEW.md](PHASE8_REVIEW.md) for implementation/test results and limitations. Earlier phase reviews describe their historical branches; current Phase 8 sections in the eight specifications supersede server-only/no-browser-storage requirements for this explicitly authorized edition. No real TPM/customer data, credential, live Rentvine connection or source write is included.

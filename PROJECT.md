@@ -1,6 +1,14 @@
 # TPM Maintenance Command Center — Project
 
-## Current release — Phase 7
+## Current release — Phase 8 static edition
+
+The user explicitly authorized a single-user, browser-only edition for $0 GitHub Pages hosting and embedding in the existing Google Site. There is no always-running application backend, sign-in, shared database, API credential or live integration. The six dashboard sections and TPM desktop design remain; manual work-order/vendor/property CSVs use the existing parsers and shared rules, persist locally in bounded IndexedDB and can be exported/restored/cleared.
+
+**GitHub Pages is public; Google Sites restrictions do not protect its URL.** Clean browser profiles start with synthetic demo data. Existing profiles may restore their own local CSV state. No imported data is uploaded by the app; local data/backups are unencrypted and accessible within the same browser profile/origin. A path namespace is not an access boundary. The user accepts these edition differences; do not add fake frontend authentication.
+
+The complete Phase 7 server implementation is preserved unchanged at `1f8a0e1` on `archive/phase-7-server` and `feat/phase-7-sites-readiness`. Current Phase 8 requirements supersede earlier server-only/no-browser-storage rules **only for this static branch**. Older phase sections below describe their historical editions. Deployment remains manual after build/security review; do not merge, change visibility, publish or connect live services automatically. See README.md, docs/DEPLOYMENT.md, docs/GOOGLE_SITES.md and PHASE8_REVIEW.md.
+
+## Historical Phase 7 release
 
 Phase 7 builds on `130f2ad` and prepares controlled private hosting inside the existing restricted Google Sites Team Portal. The Site stays the team's main interface; the dashboard host is a protected embedding service, with an authenticated-tab fallback for browser cookie restrictions. No new portal, public deployment, Google client, live Rentvine connection or automatic ingestion is activated.
 

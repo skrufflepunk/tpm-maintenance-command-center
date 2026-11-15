@@ -155,7 +155,9 @@ test("CSV preview loads the unified workspace, rejects duplicate IDs, and update
   ).toHaveValue("csv");
   await expect(page.locator(".explorer-kpis")).toContainText("1");
   await page.getByRole("button", { name: "EVAL-101", exact: true }).click();
-  await expect(page.getByRole("dialog")).toContainText("CSV evaluation record");
+  await expect(page.getByRole("dialog")).toContainText(
+    "Browser-local CSV record",
+  );
   await expect(page.getByRole("dialog")).toContainText("fictional-evaluation");
   await page.keyboard.press("Escape");
   await navigate(page, "Action Center");
@@ -166,7 +168,9 @@ test("CSV preview loads the unified workspace, rejects duplicate IDs, and update
     page.getByRole("combobox", { name: "Action data source" }),
   ).toHaveValue("csv");
   await page.getByRole("button", { name: "EVAL-101", exact: true }).click();
-  await expect(page.getByRole("dialog")).toContainText("CSV evaluation record");
+  await expect(page.getByRole("dialog")).toContainText(
+    "Browser-local CSV record",
+  );
   await page
     .getByRole("button", {
       name: "Open corresponding work order in Explorer",

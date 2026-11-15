@@ -12,8 +12,8 @@ export function CsvImport({
 }: {
   session: CsvSession;
   timezone: string;
-  onLoad: (s: Snapshot) => void;
-  onClose: () => void;
+  onLoad: (s: Snapshot) => void | Promise<void>;
+  onClose: () => void | Promise<void>;
 }) {
   const [text, setText] = useState(""),
     [headers, setHeaders] = useState<string[]>([]),
@@ -82,9 +82,9 @@ export function CsvImport({
       <p>
         No verified Rentvine headers are supplied in this project. Map only
         columns present in your export to the documented application contract.
-        Nothing is sent to a server. Use synthetic or approved redacted
-        evaluation files only; operational access and storage are not
-        implemented.
+        Nothing is sent to a server. Import only approved minimized data for
+        this single-user browser profile. Local storage is not encrypted or
+        access-controlled.
       </p>
       <label className="csv-attest">
         <input
@@ -379,18 +379,23 @@ export function CsvImport({
               </div>
               <p>
                 No demo records will be added. This replaces only the CSV
-                evaluation snapshot in memory and resets Explorer filters.
-                Reloading or clearing the session removes it.
+                browser-local snapshot and resets Explorer filters. Saving
+                depends on browser storage availability; export a backup
+                regularly.
               </p>
               <button
                 className="primary"
-                onClick={() => {
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
                   try {
                     const s = session.commit(preview.id);
-                    onLoad(s);
+                    await onLoad(s);
                     onClose();
                   } catch (e) {
                     setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
                   }
                 }}
               >

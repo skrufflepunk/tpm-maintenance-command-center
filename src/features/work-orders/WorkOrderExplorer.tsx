@@ -29,7 +29,7 @@ export function WorkOrderExplorer({
   rules: Rules;
   ref?: Ref<{ openRecord: (id: string) => void }>;
 }) {
-  const { session, csv, source, selectSource, loadCsv, clearCsv, managed } =
+  const { session, csv, source, selectSource, loadCsv, clearCsv } =
     useWorkspace();
   const [filters, setFilters] = useState<Filters>(emptyFilters),
     [approval, setApproval] = useState<string[]>([]),
@@ -120,8 +120,7 @@ export function WorkOrderExplorer({
     { key: "vendor", title: "Vendor assignment" },
     { key: "age", title: "Active age" },
   ];
-  const sources =
-    source === "demo" ? "Fictional demo" : "CSV evaluation · session only";
+  const sources = source === "demo" ? "Fictional demo" : "Browser-local CSV";
   return (
     <div className="explorer">
       <section className="source-bar" aria-label="Explorer data source">
@@ -130,7 +129,7 @@ export function WorkOrderExplorer({
           <p>
             {source === "demo"
               ? "Synthetic records only."
-              : "Isolated evaluation data. No demo records, persistence or server uploads."}
+              : "Browser-local reports. Demo records remain separate; nothing is uploaded."}
           </p>
         </div>
         <label>
@@ -157,8 +156,7 @@ export function WorkOrderExplorer({
           <button
             className="text-button csv-backup"
             onClick={() => {
-              if (managed) location.hash = "Data & Settings";
-              else setImportOpen(true);
+              setImportOpen(true);
             }}
           >
             <FileUp size={16} />
@@ -173,7 +171,7 @@ export function WorkOrderExplorer({
               switchSource("demo");
             }}
           >
-            {managed ? "Select Demo · reports retained" : "Clear CSV session"}
+            Clear CSV session
           </button>
         )}
       </section>

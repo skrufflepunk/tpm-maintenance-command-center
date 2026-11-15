@@ -1,5 +1,13 @@
 # Business rules
 
+## Phase 8 local edition boundaries
+
+All maintenance calculations below remain shared and unchanged: explicit statuses/approval/assignment coverage, strictly-greater aging thresholds, declared source timezone/date precision, qualified durations, configurable count-based review, deterministic follow-up ordering and conservative compatible-observation history. No appointments, ratings, financial facts, missed visits or source activity are inferred. All six sections use the same selected source with independent page filters. Demo and CSV records never mix.
+
+For this explicitly authorized static edition, approved mapped report data and configuration may persist in browser-local IndexedDB. There is no server authorization or trusted role/audit history. Imports replace the current observed snapshot; missing rows stay separate prior evidence and are not inferred closed/deleted. Identical mapped content/config replays preserve the existing observation identity/time. Restore revalidates before replacement and preserves original source/receipt times. Receipt display remains Mexico City.
+
+Storage is bounded and failures retain prior successful data. Unknown fields/oversized or corrupt backups cannot bypass validation using a recomputed checksum. Clear writes a fresh empty generation marker to prevent stale overwrites and resets reports/history/preferences/current view, with same-partition cross-tab notification where supported. It does not erase external backup files, other profiles/partitions or forensic disk copies. Local data/backups are unencrypted; no password/authentication guarantee is claimed. Server-only access/retention/upsert/scheduling rules in earlier phase sections below apply to the preserved Phase 7 branch, not this static edition.
+
 ## Phase 7 access and presentation rules
 
 All Phase 6 maintenance calculations, data provenance, snapshot/upsert/retention, missing-data semantics and API/delivery gates remain unchanged. Most recent successful CSV load uses actual retained acceptance timestamps across selected-source datasets; repeat-check time and original source report time stay distinct. Placeholder not-imported workspace creation is never labeled a successful data load. Receipt/audit display remains Mexico City; source calculations keep declared source timezone.

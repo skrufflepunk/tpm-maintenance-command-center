@@ -1,5 +1,13 @@
 # Normalized data schema
 
+## Phase 8 browser-local contracts
+
+The normalized work-order/vendor/property/domain contracts remain unchanged. `SavedReport` contains dataset kind, projected mapped-column CSV, explicit reviewed parser options, actual receipt time and observation ID. `LocalState` version 1 contains Demo/CSV selection, current/prior work-order and vendor reports, current property report, maintenance/review settings and up to 50 accepted/replay metadata entries. The IndexedDB slot adds a generation token for optimistic concurrency. No raw unmapped columns, credentials, message drafts or server identities are persisted.
+
+Backup envelope: `format=tpm-static-backup`, version 1, actual export timestamp, SHA-256 checksum and payload. Restore rejects unsupported/unknown structure, oversized content, malformed/future receipt times, bad rule/enum/mapping semantics, duplicate stable IDs and mismatched current report accounts; source unknown/invalid optional values keep the existing parser's nullable coverage semantics. Validation reconstructs normalized records from mapped CSV; injected normalized object arrays cannot bypass it. Checksums are integrity helpers, not signatures. Existing source-as-of values and original receipt times are retained on restore, rather than replaced by the current clock.
+
+Limits: 2 MiB/report, 10,000 data rows, 100 columns, 500 mapped-cell characters; 12 MiB serialized UTF-8 workspace; 50 local import entries; two work-order/vendor observations and one property report. Actual browser quota/policy may be smaller. The static edition supports snapshot replacement/current-prior evidence, not the server branch's incremental upsert/record archive/role/session contracts below. Current/prior accounts/scopes/timezones/mappings still gate comparison eligibility through the shared domain layer. No report is uploaded or built into published assets.
+
 ## Phase 7 access/deployment contracts
 
 No CSV/entity schema or source calculation changes. Authenticated bootstrap adds safe access metadata: provider (`oidc`/`google_workspace`), whether exact framing origins are configured, and absolute session hours. No secret, raw identity token, Google email or list of portal origins is exposed by this metadata. Encrypted server sessions now bind provider and approved Workspace domain alongside subject, expiry and source selection; old Phase 6 sessions must sign in again. Existing encrypted operational records remain compatible.

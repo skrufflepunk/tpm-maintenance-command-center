@@ -171,3 +171,8 @@ build-server/
 **/staff-subjects.json
 **/server.env
 !.env.google.example
+
+# Static edition browser artifacts and private local exports
+test-results-pages/
+*tpm*backup*.json
+*.tpm-backup.json

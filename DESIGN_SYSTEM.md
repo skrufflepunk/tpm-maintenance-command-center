@@ -1,5 +1,11 @@
 # Design system
 
+## Phase 8 static presentation
+
+Preserve the six main navigation labels, navy sidebar, compact tropical header, original palm/mountain artwork, existing cards/tables/charts and desktop-first 1366–1920px behavior. No dedicated mobile redesign is added. The settings utility retains four keyboard-accessible tabs, now Data Sources, Imports & History, Local Data & Backups and Settings, with local status/limits and backup/clear dialogs. Do not display fake staff authentication or server role controls.
+
+A compact persistent notice identifies public hosting/no sign-in and browser-local imports without implying data was uploaded. Distinguish saved, temporary and blocked/corrupt states. Actual receipt time is separate from source-as-of. Preserve native modal focus containment/return and explicit destructive/restore confirmation. The embedded-only new-tab link supports browser storage/download restrictions without another portal or false Google Sites protection.
+
 ## Phase 7 portal and settings layout
 
 Preserve the compact tropical shell and six primary navigation names. Data & Settings remains a utility and now uses four real accessible tabs: Data Sources, Imports & History, Automation, Security & Settings. Tabs support arrows/Home/End, selected/focus states, labeled panels and section-only URL context. Switching sections preserves unsaved form values; reloading restores the section but not unsaved edits. Source/identity changes retain existing safe view resets. Source creation collapses after a source is selected; report import buttons are under Imports & History.

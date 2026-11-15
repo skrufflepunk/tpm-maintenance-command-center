@@ -112,12 +112,12 @@ test("multi-select, chart counts, rules, keyboard dialog, dates and data health 
   await expect(page.getByRole("dialog").getByRole("row")).toHaveCount(11);
   await page.keyboard.press("Escape");
   const settings = page.getByRole("button", {
-    name: "Demo rules",
+    name: "Local rules",
     exact: true,
   });
   await settings.click();
   await page.getByLabel("Aging follow-up:", { exact: false }).fill("30");
-  await page.getByRole("button", { name: "Apply demo rules" }).click();
+  await page.getByRole("button", { name: "Apply local rules" }).click();
   await expect(
     page.getByRole("button", { name: /Active over 30 days/ }),
   ).toBeVisible();
@@ -141,16 +141,16 @@ test("keyboard focus is contained in dialogs and overview remains usable at 200%
 }, testInfo) => {
   await page.goto("/");
   await page.getByRole("heading", { name: "Portfolio overview" }).waitFor();
-  await page.getByRole("button", { name: "Demo rules", exact: true }).click();
+  await page.getByRole("button", { name: "Local rules", exact: true }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByRole("button", { name: "Apply demo rules" }).focus();
+  await dialog.getByRole("button", { name: "Apply local rules" }).focus();
   await page.keyboard.press("Tab");
   await expect(
     dialog.getByRole("button", { name: "Close dialog" }),
   ).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(
-    dialog.getByRole("button", { name: "Apply demo rules" }),
+    dialog.getByRole("button", { name: "Apply local rules" }),
   ).toBeFocused();
   await page.keyboard.press("Escape");
   if (testInfo.project.name === "desktop") {
@@ -200,7 +200,7 @@ test("automated WCAG checks cover overview, rules and health", async ({
       ).violations,
     ).toEqual([]);
   await scan();
-  await page.getByRole("button", { name: "Demo rules", exact: true }).click();
+  await page.getByRole("button", { name: "Local rules", exact: true }).click();
   await scan();
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: /Data health/ }).click();
@@ -312,9 +312,9 @@ test("five KPI cards disclose their cohorts and show unavailable means without e
   await expect(
     urgentRow.getByRole("button", { name: "Review source-reported urgency" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Demo rules", exact: true }).click();
+  await page.getByRole("button", { name: "Local rules", exact: true }).click();
   await page.getByLabel("Aging follow-up:", { exact: false }).fill("30");
-  await page.getByRole("button", { name: "Apply demo rules" }).click();
+  await page.getByRole("button", { name: "Apply local rules" }).click();
   await expect(
     kpis.getByRole("button", { name: /Over 30 Days Old/ }),
   ).toContainText("3");

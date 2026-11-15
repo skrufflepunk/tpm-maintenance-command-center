@@ -1,68 +1,46 @@
-# Protected deployment and Google Sites guide
+# Free GitHub Pages deployment — manual only
 
-No deployment is performed by this phase. The repository includes a protected Node server and a synthetic test identity provider; the latter is **never** an operational identity provider or a production entrypoint.
+No website is published by this task. The delivered artifact is a single-user static app, not the Phase 7 protected service. **Pages is public hosting; Google Sites restrictions do not protect its URL.** Read [the security checklist](PRODUCTION_CHECKLIST.md) before changing repository visibility or publishing.
 
-## Architecture and supported baseline
+## Prerequisites and $0 assumptions
 
-Browser → HTTPS reverse proxy → loopback Node 24 server → encrypted SQLite payload store on a private durable local disk. The Node server authenticates application assets and every data endpoint independently of Google Sites; the root/sign-out gates are data-free public HTML. OIDC authorization-code + PKCE sign-in verifies signed ID tokens using discovered JWKS, issuer/audience/nonce/expiry and an explicit server-managed subject-to-role allowlist. There is no password or API credential entry in the application. Sessions use random server-side tokens with HttpOnly cookies, an eight-hour absolute lifetime and re-evaluated local role authorization. Logout revokes the server session. Browser storage never holds operational records or tokens.
+- A GitHub account and eligible **public repository** on GitHub Free, standard GitHub-hosted Linux Actions and the free `OWNER.github.io` project URL. No paid server, database, custom domain, OAuth client or Rentvine key is needed. Confirm current account/Pages/Actions limits; avoid paid runners or optional paid services. A private repository may require a paid plan for Pages.
+- Review all repository contents **and history** for secrets/private records before making it public. The app publishes source code and synthetic fixtures. This task's bounded source/build scan is not a certification of arbitrary historical content. If in doubt, use a new clean public static-only repository and keep the original server repository private.
+- Preserve the server edition first: this workspace already has `archive/phase-7-server` and `feat/phase-7-sites-readiness` at `1f8a0e1`. An approved owner can push the archive/static branch to the intended remotes. No push, merge, visibility change or deployment is done automatically here.
 
-Use one Node service instance and one durable local SQLite volume. Multi-instance deployment/shared filesystem SQLite, high availability, external databases and identity-provider-wide continuous session revocation are not implemented. Configure the identity provider's own staff membership and review the session policy before operational use. Changing the allowlist requires a service restart; existing subjects are denied if no longer allowed. Treat application restart/allowlist updates and provider revocation as part of the operational access procedure.
+## Review the static artifact
 
-The protected fields are AES-256-GCM encrypted with per-entry nonces and authenticated namespace/ID binding. SQLite file permissions are 0600; the data directory is 0700. Metadata keys are opaque UUIDs/hashes, and update timestamps remain plaintext. Keep the separate 32-byte storage key outside Git and the web root, readable only by the service account. Host disk encryption, encrypted backups, backup retention and key lifecycle remain operator responsibilities. Losing the key makes stored payloads unreadable; do not regenerate it on each restart.
+From the Phase 8 checkout:
 
-## Configuration before use
+```bash
+npm ci
+npm run build
+npm run lint
+npm test
+npm run test:e2e
+npm run test:pages
+npm audit --audit-level=high
+```
 
-1. Obtain approval for operational data handling, staff roles, source mappings/timezone and retention. API approval is separate and is not needed for CSV mode.
-2. Choose an approved OIDC provider/client. Verify discovery, authorization-code/S256 PKCE, RS256 or ES256 ID tokens and public `none`, `client_secret_basic` or `client_secret_post` token authentication as applicable. Other client authentication methods require a reviewed adapter change. Register exactly `https://YOUR_APPROVED_HOST/auth/callback` and use top-level sign-in. Only `openid` is requested; no email, accounting or Rentvine scopes are requested.
-3. Configure exact reviewed HTTPS origins for the issuer's discovery/authorization/token/JWKS endpoints in `TPM_OIDC_ALLOWED_ORIGINS`. Cross-origin endpoints are rejected unless explicitly listed; redirects are not followed during server discovery/token/JWKS retrieval. No identity-provider compatibility is claimed until the actual provider is tested.
-4. Create server-only secret mounts and a private data directory under a dedicated non-root account. After operator authorization, generate a random 32-byte key once, store its base64 text in the mounted storage-key file, restrict it to 0400/0600, and keep a separately protected recovery copy. No production key is generated by this development task.
-5. Create a private subject allowlist file, using reviewed immutable OIDC `sub` values, for example:
+`dist/` is the **only** hosting artifact: `index.html`, an original favicon, hashed JS/CSS assets and empty `.nojekyll`. Relative URLs work at `/REPOSITORY/` as well as a root site. Navigation uses hashes, so no server rewrite or SPA backend is needed. The static CSP blocks connections/forms/plugins; no backend/API/auth code or report files are permitted by the artifact guard. A meta CSP cannot enforce `frame-ancestors` and does not authenticate users or isolate same-origin sibling apps. No service worker, analytics or third-party runtime asset is installed.
 
-   ```json
-   {
-     "replace-with-reviewed-administrator-subject": "administrator",
-     "replace-with-reviewed-staff-subject": "viewer"
-   }
-   ```
+Development/test HTTP servers are local verification fixtures, not deployment requirements. Node 24 is required for building, not for visitors or Pages hosting. Only synthetic CSVs are used in tests. Test outputs, exported backups, local databases and operator files must never be copied into `dist` or uploaded manually.
 
-   There is no self-registration or role claim trusted from browser headers. Unlisted signed-in subjects cannot access the application. Administrators manage source approval/imports/configuration/retention/audit; viewers read authorized normalized datasets with vendor email/phone withheld. This is a single-firm access model, not per-property or multi-tenant authorization.
-6. Copy `server/.env.example` to a protected operator configuration location and replace placeholders. The app origin must be exact HTTPS. OIDC/storage secrets come from protected mounted files or a server secret manager, never `VITE_` settings. The server refuses startup without the required key, identity configuration and allowlist. `TPM_LOCAL_HTTP=1` is only for explicitly local loopback, non-production synthetic development.
-7. Build and start:
+## Activate the prepared Actions workflow after review
 
-   ```bash
-   npm ci
-   npm run build
-   node --env-file=/etc/tpm/server.env build-server/index.mjs
-   ```
+1. Choose the reviewed public static repository. Push only approved code/history; do not upload reports or backups. If using the original repository, keep the Phase 7 archive branch available and have the owner review visibility implications first.
+2. Ensure `.github/workflows/pages.yml` is present on the repository's **default branch**. GitHub's manual dispatch UI requires a workflow on the default branch. Merely pushing a new workflow on a feature branch may not display **Run workflow**. After review, the owner can adopt the static branch as the default or deliberately merge/copy the reviewed static edition through their normal process. The assistant does not merge or change the default branch.
+3. In **Settings → Pages → Build and deployment → Source**, choose **GitHub Actions**. Review the `github-pages` environment's allowed deployment branches and, where available/appropriate, approval protection. A one-user repository may need to allow the owner to approve their own run; do not configure an impossible second-reviewer requirement. No app secrets or OAuth credentials belong in repository/environment variables.
+4. Open **Actions → Review and publish static Pages edition → Run workflow**. Select the reviewed static ref. Leave **publish unchecked** to run a review-only build. It runs build/artifact checks, lint, unit tests, dependency audit and production project-path/iframe browser tests with synthetic data. No Pages artifact/configuration/deployment is created in review-only mode.
+5. Inspect the passing run and static security review. When the owner is ready to publish, manually run it again with **publish checked** and **confirm_public_hosting = `PUBLISH`** exactly. Any missing/mismatched confirmation fails before publishing. There are no push, pull-request, schedule or release triggers.
+6. The publish run must pass the same checks. Only then is `dist/` uploaded using the Pages artifact action, followed by a separate deployment job with `pages: write`/`id-token: write` and the `github-pages` environment. The review job has only contents/Pages read permissions. Checkout credentials are not persisted. Action versions are pinned to upstream tag SHAs; review them under normal dependency maintenance.
+7. Read the successful deployment job's `page_url` output / **Settings → Pages** to obtain the exact URL. The usual project form is `https://OWNER.github.io/REPOSITORY/`; use GitHub's actual result, not the application development server or an Actions artifact URL. Keep the trailing slash and HTTPS. A newly published visitor sees fictional demo data, not anyone else's browser imports.
+8. Test directly with a clean browser profile and then perform the Google Sites acceptance steps below. Use synthetic records for this first published verification. No deployment occurred here, so GitHub-hosted workflow/environment behavior is not claimed as tested.
 
-   The server listens on `127.0.0.1:8787` by default. Run it under your approved service manager behind HTTPS. Reverse-proxy the entire application, `/auth/*` and `/api/*` to that service. Do not publish Vite/preview as the operational host. Node's `node:sqlite` may report its upstream experimental warning; Node 24 is the tested baseline. Production runtime uses the built server, not the test services. This build/start path has been type checked and bundled locally; no production host was provisioned.
+## Updates, rollback and data continuity
 
-## Security headers and framing
+Pushes alone never deploy. Repeat the manual review/publish sequence for a reviewed update. Keep a known-good Git commit and export a local backup before changing app origin/path or updating the local schema. Browsers store data by origin/partition/path; a new project URL/profile can appear empty. Use JSON export/restore to transfer. The same-domain path namespace is organizational only, not a security boundary.
 
-Default `frame-ancestors 'none'` and `X-Frame-Options: DENY` intentionally block embeds. After verifying the actual ancestor chain, set `TPM_FRAME_ANCESTORS` to comma-separated exact HTTPS origins with no wildcard, path, credentials or spaces. With an explicit list, the server emits that CSP list and omits the incompatible X-Frame-Options header; it does not grant arbitrary framing. Include each real ancestor required by the portal after inspecting it, not a blanket Google-domain wildcard. Do not weaken headers in the reverse proxy.
+To roll back, have the owner manually dispatch the reviewed older compatible static ref through the same checks. Do not disable schema/integrity validation to load an unsupported backup. There is no paid server to maintain, but browser/software dependencies and repository access still need normal updates. GitHub plan/usage policies and real Site acceptance remain owner responsibilities.
 
-The server also sends no-store caching, nosniff, no-referrer, restrictive script/connect/object/base/form policies and HTTPS HSTS. Inline styles remain permitted because the existing charts use inline dimensions; inline scripts are not permitted. No permissive CORS policy or proxy-supplied identity header bypass exists.
-
-## Google Sites steps and required real-portal tests
-
-1. Restrict the internal Site to authorized staff as an additional layer.
-2. Deploy the separately authenticated application on the approved HTTPS host only after review. Do not put tokens, passwords or API keys in the embed URL.
-3. Embed the app URL with a desktop content area around 1060px or wider and 800–1000px height where practical. The app scrolls within the frame and keeps its sidebar fixed to the frame's own viewport. The content must remain usable when the Site allocates a smaller viewport; local tests use 1060×620.
-4. Sign in at the application URL in a top-level tab first. Session cookies are Secure, HttpOnly and SameSite=None in production; browsers can still block third-party cookies. Do not assume a private Google Site supplies identity to the app.
-5. Test Chrome/Edge third-party-cookie restrictions, top-level and embedded sign-in, expiry, logout, browser back/refresh, staff removal, viewer restrictions, direct anonymous URLs, all data endpoints and the full CSP ancestor chain. If protected embedded sessions do not work, use an authenticated top-level “Open dashboard” link instead of exposing data.
-
-**Unverified externally:** no hosting platform, company identity tenant, actual Google Site ancestor chain/cookie behavior, TLS termination, storage backup system or production access policy has been configured or tested here. Network requests for public documentation were blocked (403) in this environment. This is an implemented and mock-tested foundation, not a claim of completed production authorization or portal certification.
-
-## Operations
-
-Apply configured retention to active data, archives, normalized observations, original mapped values and import/audit history. The server prunes expired data; current data expires rather than being silently kept forever. Source configuration remains until an approved operator migration/removal. Backup copies and their retention are outside the application and must follow the approved policy. The server does not delete or close any Rentvine record.
-
-Monitor safe audit/import outcomes and service readiness without logging raw request bodies, cookies, callback codes, contact fields or secrets. Source failures retain the last successful dataset; authentication failure removes operational data from the client. Store failure rolls back the transaction and fails closed. Keep the previous build and encrypted-data/key backups for controlled rollback. Test restore and operator procedures before approving real use.
-
-Retention also removes expired last-known carried rows when fresh incremental batches arrive. Mixed historical copies containing expired rows are discarded to avoid preserving expired fields; fresh current rows remain available. Retention changes current coverage to partial and invalidates stale previews/replay identity where records were removed.
-
-## Phase 7 preparation and current guides
-
-The prepared Google profile adds signed exact hosted-domain/verified-email checks plus immutable subject roles, with private secret/role-file checks and provider/domain-bound sessions. Old sessions must sign in again. The current four-section settings UI, explicit top-level sign-in/data-free gates, protected-tab fallback, validated container bind address, non-root pinned image and consistent encrypted backup tool are documented in [Phase 7 review](../PHASE7_REVIEW.md).
-
-Use [hosting comparison](HOSTING_OPTIONS.md), [Workspace setup](GOOGLE_WORKSPACE.md), [Google Sites instructions](GOOGLE_SITES.md), [secret/security checklist](PRODUCTION_CHECKLIST.md) and [operator runbook](../ops/README.md). The recommendation is a conditional managed service + persistent local disk, not a hosted deployment or verified quote. Actual Google/provider/portal acceptance is still required. Do not weaken headers, cookies or file permissions to make a provider work.
+Continue with [Google Sites embedding](GOOGLE_SITES.md) and [browser data/backup instructions](CSV_ONLY.md). The [preserved server edition](https://github.com/skrufflepunk/tpm-maintenance-command-center/tree/archive/phase-7-server) remains a separate option if server authentication is needed later; that branch is only remotely reachable after the owner pushes it.

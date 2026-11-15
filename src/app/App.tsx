@@ -30,7 +30,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Modal, Palm } from "../components/ui";
-import { defaultRules } from "../config/rules";
 import { getRepository } from "../data/repository";
 import type { DataHealth } from "../data/repository";
 import {
@@ -63,8 +62,7 @@ export default function App() {
     [error, setError] = useState("");
   const [tab, setTab] = useState(currentTab),
     [menu, setMenu] = useState(false),
-    [filters, setFilters] = useState<Filters>(emptyFilters),
-    [demoRules, setRules] = useState(defaultRules);
+    [filters, setFilters] = useState<Filters>(emptyFilters);
   const [ruleOpen, setRuleOpen] = useState(false),
     [healthOpen, setHealthOpen] = useState(false),
     [selected, setSelected] = useState<WorkOrder | null>(null),
@@ -75,15 +73,11 @@ export default function App() {
     source: explorerSource,
     csv,
     vendorSource,
-    managed,
-    managedSourceId,
-    managedError,
+    rules,
+    updateRules,
+    storage,
     session,
   } = useWorkspace();
-  const rules =
-    managed && managedSourceId && explorerSource === "csv"
-      ? managed.settings.rules
-      : demoRules;
   const actionRef = useRef<{ openRecord: (id: string) => void }>(null);
   const explorerRef = useRef<{ openRecord: (id: string) => void }>(null);
   const [viewedAt] = useState(() => new Date().toISOString());
@@ -309,18 +303,11 @@ export default function App() {
             <TropicalScene vertical />
           </div>
           <span className="demo-label">
-            <span />{" "}
-            {explorerCsv
-              ? managedSourceId
-                ? "CSV REPORTS"
-                : "CSV EVALUATION"
-              : "DEMO WORKSPACE"}
+            <span /> {explorerCsv ? "LOCAL CSV REPORTS" : "DEMO WORKSPACE"}
           </span>
           <p>
             {explorerCsv
-              ? managedSourceId
-                ? "Protected CSV workspace."
-                : "Local CSV evaluation."
+              ? "Browser-local CSV workspace."
               : "Fictional portfolio."}
             <br />
             Read-only clarity.
@@ -330,11 +317,7 @@ export default function App() {
             <span className="avatar">TP</span>
             <div>
               TPM team
-              <small>
-                {managed
-                  ? `Authenticated ${managed.user.role}`
-                  : "Read-only demonstration"}
-              </small>
+              <small>Single-user static edition</small>
             </div>
             <ShieldCheck size={16} />
           </div>
@@ -348,9 +331,7 @@ export default function App() {
             <div className="hero-title">Maintenance Command Center</div>
             <span>
               {explorerCsv
-                ? managedSourceId
-                  ? "Protected CSV reports · read-only operational views."
-                  : "Read-only CSV evaluation · session memory only."
+                ? "Browser-local reports · no server upload."
                 : "Priorities, clarity, and follow-ups across your fictional portfolio."}
             </span>
           </div>
@@ -387,9 +368,9 @@ export default function App() {
         <main id="main-content" ref={mainRef} tabIndex={-1} className="main">
           {window.self !== window.top && (
             <div className="portal-toolbar" aria-label="Team Portal frame">
-              <span>Team Portal view · protected staff session</span>
+              <span>Team Portal view · browser-local data</span>
               <a href={location.href} target="_blank" rel="noopener noreferrer">
-                Open dashboard in a secure tab
+                Open dashboard in a new tab
               </a>
             </div>
           )}
@@ -423,16 +404,10 @@ export default function App() {
             </div>
             <button
               className="outline-button"
-              onClick={() => {
-                if (managed && explorerSource === "csv")
-                  location.hash = "Data & Settings";
-                else setRuleOpen(true);
-              }}
+              onClick={() => setRuleOpen(true)}
             >
               <Settings2 size={16} />
-              {managed && explorerSource === "csv"
-                ? "Protected rule settings"
-                : "Demo rules"}
+              Local rules
             </button>
           </div>
           <div className="demo-notice">
@@ -440,15 +415,9 @@ export default function App() {
             <span>
               {explorerCsv ? (
                 <>
-                  <strong>
-                    {managedSourceId
-                      ? "Protected CSV reports."
-                      : "CSV evaluation · session only."}
-                  </strong>{" "}
-                  Imported records are separate from demo data.{" "}
-                  {managedSourceId
-                    ? "Authenticated server storage; no live Rentvine connection."
-                    : "No server upload or Rentvine connection."}
+                  <strong>Browser-local CSV reports.</strong> Imported records
+                  are separate from demo data. No server upload or Rentvine
+                  connection.
                 </>
               ) : (
                 <>
@@ -459,9 +428,14 @@ export default function App() {
               )}
             </span>
           </div>
-          {managedSourceId && managedError && (
+          <div className="static-notice" role="note">
+            Static edition · public hosting, no sign-in. Imported data stays in
+            this browser profile; Google Sites restrictions do not protect the
+            app URL. <a href="#Data & Settings">Local data &amp; backups</a>
+          </div>
+          {storage.error && (
             <p className="settings-error" role="status">
-              {managedError} Last loaded source data may be stale.
+              {storage.error}
             </p>
           )}
           {snapshot.qualitySummary
@@ -733,8 +707,8 @@ export default function App() {
       {ruleOpen && (
         <RulesEditor
           rules={rules}
-          onSave={(r) => {
-            setRules(r);
+          onSave={async (r) => {
+            await updateRules(r);
             setField("bucket", []);
           }}
           onClose={() => setRuleOpen(false)}

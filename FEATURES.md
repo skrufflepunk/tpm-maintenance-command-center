@@ -1,5 +1,13 @@
 # Features and acceptance criteria
 
+## Phase 8 static edition acceptance
+
+All six completed sections retain their approved desktop layout, filters, charts, analytics, source-qualified details and read-only/copy-only workflows. Data & Settings now groups Data Sources, Imports & History, Local Data & Backups, Settings. Manual CSV import works entirely in the browser with existing explicit mappings, stable-ID validation and source-isolated normalization. Imports/history/settings persist across reload when storage is available; unknown values and coverage remain visible.
+
+Local export/restore includes schema/checksum/CSV validation, preview and replacement confirmation. Clear requires confirmation and resets only this edition's workspace. Bounded storage, quota/stale-tab failures, corrupt-data quarantine and temporary fallback are visible. No backend/SSO/API/scheduler is required or faked; those features remain on the unchanged server branch. Static data history is local editable metadata, not a server audit log.
+
+Public hosting/no-sign-in and browser profile/origin risks are disclosed in the UI/docs. A new-tab link supports blocked/partitioned iframe storage/downloads; the same free dashboard remains usable without a paid service. Relative assets/hash routing are tested at a project subpath, with a built production bundle and a synthetic cross-origin frame. Manual GitHub Actions publishing is configured but not run; actual Pages/published Site acceptance remains an owner action after review.
+
 ## Phase 7 integration readiness
 
 The existing features remain; Data & Settings is split into Data Sources, Imports & History, Automation, Security & Settings, with keyboard tabs, restorable section links, preserved drafts between sections and honest latest successful CSV-load time. Imports/history/validation/source policies/retention/audit/admin controls remain available under their relevant section. API and automatic delivery remain disabled by default.

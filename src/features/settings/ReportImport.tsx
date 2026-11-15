@@ -9,15 +9,19 @@ import type {
   PropertyOptions,
   PropertyDirectory,
 } from "../../data/propertyCsv";
-import type {
-  DatasetKind,
-  ImportOptions,
-  ManagedPreview,
-  SourceConfig,
-} from "../../data/managedTypes";
+import type { DatasetKind, ImportOptions } from "../../data/local/reports";
+import { savedReport } from "../../data/local/reports";
 import type { Snapshot, Status, Priority, WorkOrder } from "../../domain/types";
 import { useWorkspace } from "../../data/workspace/context";
-import { managedRequest } from "../../data/managedClient";
+interface LocalPreview {
+  id: string;
+  rows: number;
+  errors: string[];
+  warnings: string[];
+  sample: unknown[];
+  missing: number;
+  carried: number;
+}
 const enumDefinitions = [
   {
     field: "status",
@@ -49,27 +53,24 @@ const enumDefinitions = [
 ] as const;
 export function ReportImport({
   dataset,
-  source,
   onClose,
 }: {
   dataset: DatasetKind;
-  source: SourceConfig | null;
   onClose: () => void;
 }) {
   const workspace = useWorkspace(),
     [input, setInput] = useState(""),
     [table, setTable] = useState<string[][]>([]),
-    [preview, setPreview] = useState<ManagedPreview | null>(null),
+    [preview, setPreview] = useState<LocalPreview | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     revision = useRef(0),
     propertyStage = useRef<PropertyDirectory | null>(null);
-  const preset = source?.presets[dataset];
   const [account, setAccount] = useState(
-      source?.account ?? workspace.csv?.datasets[0].sourceAccountId ?? "",
+      workspace.csv?.datasets[0].sourceAccountId ?? "",
     ),
-    [scope, setScope] = useState(preset?.scope ?? source?.scope ?? ""),
-    [timezone, setTimezone] = useState(source?.timezone ?? ""),
+    [scope, setScope] = useState(""),
+    [timezone, setTimezone] = useState(workspace.rules.timezone),
     [reportAsOf, setReportAsOf] = useState(""),
     [mapping, setMapping] = useState<Record<string, string>>({}),
     [enums, setEnums] = useState<Record<string, Record<string, string>>>({}),
@@ -145,16 +146,16 @@ export function ReportImport({
         : [];
   return (
     <Modal
-      title={`Import ${dataset} report · ${source ? "protected server" : "local evaluation"}`}
+      title={`Import ${dataset} report · browser-local`}
       onClose={() => {
         invalidate();
         onClose();
       }}
     >
       <p>
-        {source
-          ? "Administrator import: validation, original mapped field values, normalized records and audit history are stored encrypted on the protected server after review."
-          : "Local synthetic/redacted evaluation only. This is memory-only, without operational authentication or persistence. Configure the protected server before importing production records."}
+        Files are parsed in this browser. Only mapped approved fields are saved
+        locally; no report is uploaded. Browser storage is not encrypted. Export
+        a backup before clearing browser/site data.
       </p>
       <p>
         No Rentvine export header is assumed. Only mapped approved fields are
@@ -170,9 +171,8 @@ export function ReportImport({
             setApproved(e.target.checked);
           }}
         />{" "}
-        {source
-          ? "I confirm these fields are approved, minimized and appropriately redacted for the authorized staff audience."
-          : "This file contains only synthetic or approved redacted evaluation records; no private contacts or tenant information."}
+        I confirm these fields are approved and minimized for my local browser;
+        tenant contacts, entry codes and private notes are omitted.
       </label>
       <label className="vendor-file">
         Report CSV file
@@ -215,7 +215,6 @@ export function ReportImport({
           Report source account
           <input
             value={account}
-            disabled={!!source}
             maxLength={100}
             onChange={(e) => {
               invalidate();
@@ -238,7 +237,6 @@ export function ReportImport({
           Source timezone
           <input
             value={timezone}
-            disabled={!!source}
             onChange={(e) => {
               invalidate();
               setTimezone(e.target.value);
@@ -362,23 +360,8 @@ export function ReportImport({
             setBusy(true);
             setError("");
             try {
-              let result: ManagedPreview;
-              if (source) {
-                if (!workspace.managed)
-                  throw new Error("Authenticate before importing.");
-                result = await managedRequest<ManagedPreview>(
-                  "/imports/preview",
-                  workspace.managed.csrf,
-                  "POST",
-                  {
-                    sourceId: source.id,
-                    dataset,
-                    input,
-                    options: options(),
-                    behavior: source.behavior,
-                  },
-                );
-              } else if (dataset === "workOrders") {
+              let result: LocalPreview;
+              if (dataset === "workOrders") {
                 const p = await workspace.session.preview(
                   input,
                   options() as CsvOptions,
@@ -460,15 +443,11 @@ export function ReportImport({
               {message}
             </p>
           ))}
-          {source && (
-            <p>
-              {source.behavior === "snapshot"
-                ? "Snapshot replacement of current observations; absent prior records are archived, not deleted."
-                : "Incremental last-known state; carried records are disclosed and not newly confirmed."}{" "}
-              {preview.missing} prior rows not in this report; {preview.carried}{" "}
-              carried into an upsert view.
-            </p>
-          )}
+          <p>
+            Snapshot replacement: absent prior rows are not inferred completed
+            or deleted. Compatible prior observations remain separate from
+            current totals.
+          </p>
           {!preview.errors.length && (
             <>
               <div
@@ -513,8 +492,8 @@ export function ReportImport({
                 </table>
               </div>
               <p className="muted">
-                First five normalized rows. Original mapped values remain
-                server-only in protected mode.
+                First five normalized rows. Only mapped source values are
+                retained in browser-local data and JSON backups.
               </p>
               <button
                 className="primary"
@@ -522,25 +501,24 @@ export function ReportImport({
                 onClick={async () => {
                   setBusy(true);
                   try {
-                    if (source) {
-                      await managedRequest(
-                        `/imports/${preview.id}/commit`,
-                        workspace.managed!.csrf,
-                        "POST",
-                        {},
-                      );
-                      await workspace.selectManaged(source.id);
-                      await workspace.refreshManaged(source.id);
-                    } else if (dataset === "workOrders")
-                      workspace.loadCsv(
+                    if (dataset === "workOrders")
+                      await workspace.loadCsv(
                         workspace.session.commit(preview.id) as Snapshot,
                       );
                     else if (dataset === "vendors")
-                      workspace.loadVendorCsv(
+                      await workspace.loadVendorCsv(
                         workspace.vendorSession.commitImport(preview.id),
                       );
                     else if (propertyStage.current)
-                      workspace.loadPropertyCsv(propertyStage.current);
+                      await workspace.loadPropertyCsv(
+                        propertyStage.current,
+                        savedReport(
+                          "properties",
+                          input,
+                          options(),
+                          propertyStage.current.id,
+                        ),
+                      );
                     onClose();
                   } catch (err) {
                     setError(

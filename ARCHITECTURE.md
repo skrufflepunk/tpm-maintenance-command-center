@@ -1,5 +1,17 @@
 # Architecture
 
+## Phase 8 static architecture
+
+Browser → bundled React/TypeScript/Vite application → existing normalized CSV/domain layer → bounded IndexedDB workspace. No server API, OIDC, Node runtime, secret manager or paid database is required by the published edition. Development and production-fixture HTTP servers are local tools only. The preserved Phase 7 branch retains all protected server functionality; its requirements below are historical for this branch.
+
+`src/data/local/reports.ts` projects only explicitly mapped CSV columns. CsvSession/VendorCsvSession retain current/prior report metadata alongside normalized observations. `state.ts` validates a fixed versioned schema and re-runs all CSV parsers when loading/restoring; it never trusts injected normalized records. Source values/precision/receipt/observation identities persist without fabricating new load history. Only current/previous work-order/vendor reports, current properties, settings and up to 50 load/replay entries are retained under 12 MiB total; per-report limits remain unchanged.
+
+`storage.ts` uses one IndexedDB workspace slot with atomic transactions and fresh generation tokens. A stale tab cannot silently overwrite a newer/cleared workspace. Clear removes reports/history/preferences and writes an empty generation marker/default state, preserving unrelated storage. BroadcastChannel resets other open views in the same partition where supported. Invalid saved data is quarantined; unavailable storage falls back to explicitly labeled temporary memory. Failed writes restore the prior normalized view. The provider coordinates one selected Demo/CSV source across all six pages; page filters and copy-only drafts remain local UI state, not backup contents.
+
+Backups are local versioned JSON with SHA-256 corruption detection, strict size/schema/account/rule/CSV checks and confirmed replacement. The checksum is not authentication; local state/backups are unencrypted. Browser profiles, storage partitioning, quota/eviction and same-origin sibling apps remain real limits. No tenant/owner contact/credential/attachment field is added; summaries still require user-approved minimization.
+
+Vite emits relative assets and hash routes suitable for project Pages paths. A production meta CSP precedes scripts and blocks network connections/forms/plugins; it cannot enforce server framing headers or authentication. Only `dist/` passes the static artifact guard and can be uploaded. The pinned GitHub Actions workflow is manual dispatch only, review-only by default, with explicit publish confirmation and passing checks before a separate Pages deployment job. No live deployment or GitHub/Google account configuration occurs here.
+
 ## Phase 7 protected embedding/deployment
 
 One protected Node 24 service still serves the Vite build and authenticated same-origin APIs over a reviewed HTTPS ingress, using private durable local SQLite payload storage. The prepared multi-stage Dockerfile pins a verified Node 24 image digest, runs non-root and excludes development/test services and secrets. VM Caddy/systemd examples are preparation only. Default listener stays loopback; an explicit validated `TPM_BIND_ADDRESS=0.0.0.0` supports protected container/PaaS ingress. One instance is supported; serverless ephemeral disks/network-shared SQLite are unsuitable without a reviewed adapter change.

@@ -12,15 +12,19 @@ if (process.env.CHROME_PATH && !existsSync(chrome))
   throw new Error("CHROME_PATH does not point to an available browser.");
 if (process.env.EDGE_PATH && !existsSync(edge))
   throw new Error("EDGE_PATH does not point to an available browser.");
+const fallback = process.env.CHROMIUM_PATH || "/usr/bin/chromium";
 const executable = existsSync(chrome)
   ? chrome
-  : process.env.CHROMIUM_PATH || "/usr/bin/chromium";
+  : existsSync(fallback)
+    ? fallback
+    : undefined;
 const desktop = (width: number) => ({
   ...devices["Desktop Chrome"],
   viewport: { width, height: 1000 },
 });
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: ["**/pages/**"],
   fullyParallel: true,
   workers: 2,
   reporter: "list",
@@ -61,11 +65,6 @@ export default defineConfig({
     {
       command: "npm run dev -- --port 5173 --strictPort",
       url: "http://127.0.0.1:5173",
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: "npm run test:services",
-      url: "http://127.0.0.1:8787/healthz",
       reuseExistingServer: !process.env.CI,
     },
   ],

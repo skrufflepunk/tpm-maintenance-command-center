@@ -1,5 +1,14 @@
 # Instructions for coding agents
 
+## Current Phase 8 user authorization (takes precedence for this branch)
+The user explicitly requested a free, single-user GitHub Pages static edition with local CSV imports, browser persistence, export/restore and clear controls. This supersedes earlier server-only/no-browser-storage/no-anonymous-access rules **for this static branch only**. Preserve the unchanged Phase 7 server at `1f8a0e1` on `archive/phase-7-server` and `feat/phase-7-sites-readiness`. Do not reapply server authentication, require a paid/always-on backend or invent frontend access control.
+
+Preserve all six dashboard layouts/filters/charts/domain rules and source isolation. Persist only approved mapped columns under documented limits; validate local state/backups by re-running CSV parsers; keep prior evidence separate from current totals. Show storage failures/temporary mode honestly, protect failed-write rollback and stale-tab clears. Local data/backups are unencrypted, and same-origin siblings share origin storage; path names are not security boundaries. Never publish imported records, backups, credentials, traces or operator files.
+
+GitHub Pages/app code/demo are public; Google Sites restrictions do not protect the app URL. Clean profiles start with synthetic data. No data is uploaded by the app, no API/SSO/scheduler is implemented and no source writes/messages are enabled. Publish only reviewed static dist via manual workflow dispatch with explicit intent and passing build/security checks. Do not deploy, merge, push, change visibility or enable integrations automatically. Use synthetic records for deployment/iframe tests. Report real hosted behavior as unverified until owner publication/acceptance.
+
+Run build/lint/unit, existing desktop regression and built-project-path/iframe browser checks; validate the manual-only workflow, artifact boundaries and branch preservation. Keep current docs/README and Phase 8 review aligned. The historical server policies below continue to govern their preserved branches.
+
 ## Read first
 Read PROJECT.md, DESIGN_SYSTEM.md, FEATURES.md, DATA_SCHEMA.md, ARCHITECTURE.md, BUSINESS_RULES.md, README.md, and .env.example before implementation. Follow confirmed requirements; treat proposed settings as proposals. If requirements conflict, document the issue and reconcile the affected documents rather than silently choosing incompatible behavior.
 

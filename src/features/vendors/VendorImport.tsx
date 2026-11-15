@@ -26,8 +26,8 @@ export function VendorImport({
   onClose,
 }: {
   session: VendorCsvSession;
-  onLoad: (directory: VendorDirectory) => void;
-  onClose: () => void;
+  onLoad: (directory: VendorDirectory) => void | Promise<void>;
+  onClose: () => void | Promise<void>;
 }) {
   const revision = useRef(0);
   const [input, setInput] = useState(""),
@@ -79,9 +79,8 @@ export function VendorImport({
         Vendor ID is required; names never create joins.
       </p>
       <p className="muted">
-        Synthetic or approved redacted evaluation only. No private contact
-        records; operational contact access requires future server
-        authorization. Nothing is uploaded or saved to browser storage.
+        Use only approved minimized records. Only mapped fields are saved to this browser profile;
+        local data and backups are not encrypted. Nothing is uploaded. Browser storage may be unavailable in some frames.
       </p>
       <label className="vendor-attest">
         <input
@@ -224,9 +223,7 @@ export function VendorImport({
                           activeMap: {
                             ...options.activeMap,
                             [value]: e.target.value as
-                              | "active"
-                              | "inactive"
-                              | "unknown",
+                              "active" | "inactive" | "unknown",
                           },
                         })
                       }
@@ -335,9 +332,10 @@ export function VendorImport({
               <button
                 className="primary"
                 disabled={busy}
-                onClick={() => {
+                onClick={async () => {
+                  setBusy(true);
                   try {
-                    onLoad(session.commitImport(preview.id));
+                    await onLoad(session.commitImport(preview.id));
                     onClose();
                   } catch (err) {
                     setError(
@@ -345,6 +343,8 @@ export function VendorImport({
                         ? err.message
                         : "Load failed; previous data retained.",
                     );
+                  } finally {
+                    setBusy(false);
                   }
                 }}
               >

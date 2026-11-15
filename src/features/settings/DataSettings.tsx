@@ -1,252 +1,132 @@
-import { useEffect, useState } from "react";
-import {
-  Database,
-  FileUp,
-  LockKeyhole,
-  RefreshCw,
-  ShieldCheck,
-} from "lucide-react";
-import { Panel } from "../../components/ui";
+import { useState } from "react";
+import { Database, Download, FileUp, Trash2 } from "lucide-react";
+import { Panel, Modal } from "../../components/ui";
+import { RulesEditor } from "../../components/RulesEditor";
+import { ReviewSettings } from "../insights/ReviewSettings";
 import { useWorkspace } from "../../data/workspace/context";
-import { managedRequest } from "../../data/managedClient";
-import type {
-  DatasetKind,
-  ImportSummary,
-  ServerSettings,
-  SourceConfig,
-} from "../../data/managedTypes";
-import { freshness } from "../../domain/rules";
+import { MAX_LOCAL_BYTES, restoreBackup } from "../../data/local/state";
+import type { LocalState } from "../../data/local/state";
+import type { DatasetKind } from "../../data/local/reports";
 import { displayReceiptTime } from "../../domain/displayTime";
 import { ReportImport } from "./ReportImport";
 const sections = [
   { id: "sources", label: "Data Sources" },
   { id: "imports", label: "Imports & History" },
-  { id: "automation", label: "Automation" },
-  { id: "security", label: "Security & Settings" },
+  { id: "storage", label: "Local Data & Backups" },
+  { id: "settings", label: "Settings" },
 ] as const;
-type SettingsSection = (typeof sections)[number]["id"];
-function currentSection(): SettingsSection {
-  const value = new URLSearchParams(location.search).get("settings");
-  return sections.find((section) => section.id === value)?.id ?? "sources";
-}
 export function DataSettings() {
-  const [active, setActive] = useState<SettingsSection>(currentSection);
-  const w = useWorkspace(),
-    source = w.managed?.sources.find((s) => s.id === w.managedSourceId);
-  return (
-    <DataSettingsContent
-      active={active}
-      onSectionChange={(next) => {
-        const url = new URL(location.href);
-        url.searchParams.set("settings", next);
-        history.replaceState(null, "", url);
-        setActive(next);
-      }}
-      key={`${w.managed?.user.role ?? "local"}:${source?.id ?? "none"}:${source?.revision ?? 0}:${w.managed?.settings.rules.rulesVersion ?? "demo"}`}
-    />
+  const w = useWorkspace();
+  const [active, setActive] = useState(
+    () =>
+      sections.find(
+        (s) => s.id === new URLSearchParams(location.search).get("settings"),
+      )?.id ?? "sources",
   );
-}
-function DataSettingsContent({
-  active,
-  onSectionChange,
-}: {
-  active: SettingsSection;
-  onSectionChange: (section: SettingsSection) => void;
-}) {
-  const w = useWorkspace(),
-    [importing, setImporting] = useState<DatasetKind | null>(null),
-    [history, setHistory] = useState<ImportSummary[]>([]),
-    [audit, setAudit] = useState<
-      { id: string; event: string; at: string; actor: string }[]
-    >([]),
-    [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
-    [settings, setSettings] = useState<ServerSettings | null>(
-      w.managed?.settings ?? null,
+  const [importing, setImporting] = useState<DatasetKind | null>(null),
+    [rulesOpen, setRulesOpen] = useState(false),
+    [reviewOpen, setReviewOpen] = useState(false),
+    [clearOpen, setClearOpen] = useState(false),
+    [confirmClear, setConfirmClear] = useState(false),
+    [restoreOpen, setRestoreOpen] = useState(false),
+    [backup, setBackup] = useState<{ input: string; state: LocalState } | null>(
+      null,
     ),
-    [profile, setProfile] = useState({
-      name: "",
-      account: "",
-      scope: "",
-      timezone: "",
-      approved: false,
-      behavior: "snapshot",
-    }),
-    [delivery, setDelivery] = useState(
-      w.managed?.sources.find((s) => s.id === w.managedSourceId)?.delivery ?? {
-        enabled: false,
-        intervalMinutes: 60,
-        dataset: "workOrders" as DatasetKind,
-      },
-    );
-  const admin = w.managed?.user.role === "administrator",
-    source = w.managed?.sources.find((s) => s.id === w.managedSourceId) ?? null;
-  const sourceId = source?.id;
-  useEffect(() => {
-    let valid = true;
-    if (w.managed) {
-      void managedRequest<{ imports: ImportSummary[] }>(
-        "/imports" + (sourceId ? `?sourceId=${sourceId}` : ""),
-      )
-        .then((result) => {
-          if (valid) setHistory(result.imports);
-        })
-        .catch(() => {
-          if (valid)
-            setError(
-              "Import history is unavailable; previous data is retained.",
-            );
-        });
-      if (admin)
-        void managedRequest<{ events: typeof audit }>("/audit")
-          .then((result) => {
-            if (valid) setAudit(result.events);
-          })
-          .catch(() => {
-            if (valid) setError("Audit history is unavailable.");
-          });
-    }
-    return () => {
-      valid = false;
-    };
-  }, [w.managed, sourceId, admin]);
-  const action = async (fn: () => Promise<unknown>) => {
+    [confirmRestore, setConfirmRestore] = useState(false),
+    [error, setError] = useState(""),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false);
+  const data = [
+    ...(w.csv?.datasets.filter(
+      (d) =>
+        d.datasetType === "workOrders" && d.mappingVersion !== "not-imported",
+    ) ?? []),
+    ...(w.vendorCsv ? [w.vendorCsv.dataset] : []),
+    ...(w.propertyCsv ? [w.propertyCsv.dataset] : []),
+  ];
+  const latest = data
+    .map((d) => d.importedAt)
+    .sort()
+    .at(-1);
+  const action = async (fn: () => Promise<void>) => {
     setBusy(true);
     setError("");
+    setMessage("");
     try {
       await fn();
-      await w.refreshManaged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Protected action failed.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Local operation failed; previous data retained.",
+      );
     } finally {
       setBusy(false);
     }
   };
-  const datasetRows = [
-    ...new Map(
-      [
-        ...(w.csv?.datasets.filter(
-          (d) =>
-            d.datasetType === "workOrders" &&
-            d.mappingVersion !== "not-imported",
-        ) ?? []),
-        ...(w.vendorCsv ? [w.vendorCsv.dataset] : []),
-        ...(w.propertyCsv ? [w.propertyCsv.dataset] : []),
-      ].map((d) => [d.datasetType, d]),
-    ).values(),
-  ];
-  const receiptTimes = Object.values(w.managedRefresh)
-    .map((row) => row?.lastSuccessfulImport)
-    .filter(
-      (value): value is string => !!value && Number.isFinite(Date.parse(value)),
-    );
-  const lastReceipt = receiptTimes.length
-    ? receiptTimes.reduce((latest, value) =>
-        Date.parse(value) > Date.parse(latest) ? value : latest,
-      )
-    : (datasetRows
-        .map((row) => row.importedAt)
-        .filter((value) => Number.isFinite(Date.parse(value)))
-        .sort()
-        .at(-1) ?? null);
   return (
     <div className="data-settings">
-      <section className="settings-status" aria-label="Connection and access">
+      <section className="settings-status" aria-label="Local data storage">
         <Database size={24} />
         <div>
           <strong>
-            {w.managed
-              ? "Protected server connected"
-              : "Local evaluation · protected server not connected"}
+            {w.storage.status === "saved"
+              ? "Saved in this browser profile"
+              : w.storage.status === "temporary"
+                ? "Temporary browser session"
+                : "Saved data needs attention"}
           </strong>
           <p>
-            {w.managed
-              ? `Authenticated ${w.managed.user.role} · server-side authorization · encrypted persistence`
-              : "Fictional/redacted CSV evaluation remains functional. Configure authenticated server access before handling production records."}
+            Single-user static edition · no sign-in, backend, API connection or
+            report upload. Browser-local data and downloaded backups are not
+            encrypted.
           </p>
         </div>
-        {w.managed ? (
-          <button
-            className="outline-button"
-            disabled={busy}
-            onClick={() =>
-              void action(async () => {
-                await managedRequest("/logout", w.managed!.csrf, "POST", {});
-                location.assign("/auth/signed-out");
-              })
-            }
-          >
-            Sign out
-          </button>
-        ) : (
-          <a
-            className="outline-button"
-            href="/auth/login"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Sign in in a new tab
-          </a>
-        )}
-        <button
+        <a
           className="outline-button"
-          disabled={busy}
-          onClick={() => void action(() => w.refreshManaged())}
+          href={location.href}
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <RefreshCw size={14} />
-          Check server connection
-        </button>
+          Open dashboard in a new tab
+        </a>
       </section>
-      {(error || w.managedError) && (
-        <p className="settings-error" role="status">
-          {error || w.managedError}
-        </p>
-      )}
       <div className="settings-summary">
         <div>
-          <ShieldCheck size={18} />
-          <span>Rentvine access</span>
-          <strong>Read-only boundary</strong>
-          <small>No write operations or messages</small>
+          <Database size={18} />
+          <span>Local workspace</span>
+          <strong>{(w.storage.bytes / 1048576).toFixed(2)} / 12 MiB</strong>
+          <small>Browser quota or policy may impose a lower limit</small>
         </div>
         <div>
           <FileUp size={18} />
           <span>Manual CSV</span>
-          <strong>
-            {w.managed
-              ? "Protected import route"
-              : "Local evaluation available"}
-          </strong>
-          <small>API-independent · explicit mappings</small>
+          <strong>Browser-only import</strong>
+          <small>Explicit mapping · 2 MiB / 10,000 rows per report</small>
         </div>
         <div>
-          <LockKeyhole size={18} />
-          <span>Rentvine API</span>
-          <strong>Not configured</strong>
-          <small>Ownership approval &amp; verified capabilities required</small>
+          <Download size={18} />
+          <span>Backup & restore</span>
+          <strong>Local JSON files</strong>
+          <small>No cloud sync · export regularly</small>
         </div>
       </div>
-      <div className="settings-refresh" role="status">
+      <div className="settings-refresh">
         <div>
           <strong>
-            {source?.name ??
-              (w.source === "csv"
-                ? "Local CSV evaluation"
-                : "Fictional demonstration")}
+            {w.source === "csv"
+              ? "Browser-local CSV workspace"
+              : "Fictional demonstration"}
           </strong>
           <span>Last successful CSV load</span>
         </div>
         <div>
-          {lastReceipt ? (
-            <time dateTime={lastReceipt} title={lastReceipt}>
-              {displayReceiptTime(lastReceipt)}
-            </time>
+          {latest ? (
+            <time dateTime={latest}>{displayReceiptTime(latest)}</time>
           ) : (
-            "No retained CSV load"
+            "No CSV report imported"
           )}
-          <small>
-            Source report dates and coverage are under Imports &amp; History.
-          </small>
+          <small>Receipt time is separate from the source report date.</small>
         </div>
       </div>
       <div
@@ -254,260 +134,132 @@ function DataSettingsContent({
         role="tablist"
         aria-label="Data & Settings sections"
       >
-        {sections.map((section, index) => (
+        {sections.map((s, index) => (
           <button
-            key={section.id}
-            type="button"
+            key={s.id}
             role="tab"
-            id={`settings-tab-${section.id}`}
-            aria-selected={active === section.id}
-            aria-controls={`settings-panel-${section.id}`}
-            tabIndex={active === section.id ? 0 : -1}
-            onClick={() => onSectionChange(section.id)}
-            onKeyDown={(event) => {
-              const nextIndex =
-                event.key === "ArrowRight"
-                  ? (index + 1) % sections.length
-                  : event.key === "ArrowLeft"
-                    ? (index + sections.length - 1) % sections.length
-                    : event.key === "Home"
+            id={`settings-tab-${s.id}`}
+            aria-selected={active === s.id}
+            aria-controls={`settings-panel-${s.id}`}
+            tabIndex={active === s.id ? 0 : -1}
+            onClick={() => {
+              const url = new URL(location.href);
+              url.searchParams.set("settings", s.id);
+              history.replaceState(null, "", url);
+              setActive(s.id);
+            }}
+            onKeyDown={(e) => {
+              const n =
+                e.key === "ArrowRight"
+                  ? (index + 1) % 4
+                  : e.key === "ArrowLeft"
+                    ? (index + 3) % 4
+                    : e.key === "Home"
                       ? 0
-                      : event.key === "End"
-                        ? sections.length - 1
+                      : e.key === "End"
+                        ? 3
                         : null;
-              if (nextIndex === null) return;
-              event.preventDefault();
-              const next = sections[nextIndex].id;
-              onSectionChange(next);
-              document.getElementById(`settings-tab-${next}`)?.focus();
+              if (n === null) return;
+              e.preventDefault();
+              document
+                .getElementById(`settings-tab-${sections[n].id}`)
+                ?.click();
+              document
+                .getElementById(`settings-tab-${sections[n].id}`)
+                ?.focus();
             }}
           >
-            {section.label}
+            {s.label}
           </button>
         ))}
       </div>
+      {error && (
+        <p className="settings-error" role="alert">
+          {error}
+        </p>
+      )}
+      {message && (
+        <p role="status" className="insight-note">
+          {message}
+        </p>
+      )}
       <div
+        role="tabpanel"
         className="settings-tab-panel"
         id="settings-panel-sources"
-        role="tabpanel"
         aria-labelledby="settings-tab-sources"
         tabIndex={0}
         hidden={active !== "sources"}
       >
         <Panel
           title="Data sources"
-          eyebrow="ONE NORMALIZED WORKSPACE · ALL SIX SECTIONS"
+          eyebrow="ONE SELECTED SOURCE · ALL SIX SECTIONS"
         >
           <div className="settings-controls">
             <label>
               Active data workspace
               <select
-                value={
-                  w.source === "demo"
-                    ? "demo"
-                    : (w.managedSourceId ?? "local-csv")
+                value={w.source}
+                onChange={(e) =>
+                  w.selectSource(e.target.value as "demo" | "csv")
                 }
-                onChange={(e) => {
-                  if (e.target.value === "demo") w.selectSource("demo");
-                  else if (e.target.value === "local-csv")
-                    w.selectSource("csv");
-                  else void action(() => w.selectManaged(e.target.value));
-                }}
               >
                 <option value="demo">Fictional demonstration data</option>
-                {!w.managed && w.csv && (
-                  <option value="local-csv">
-                    Local CSV evaluation · memory only
-                  </option>
-                )}
-                {w.managed?.sources.map((s) => (
-                  <option key={s.id} value={s.id} disabled={!s.approved}>
-                    {s.name} · CSV {s.approved ? "approved" : "not approved"}
-                  </option>
-                ))}
-                <option value="api" disabled>
-                  Rentvine API · Not configured
+                <option value="csv" disabled={!w.csv}>
+                  Browser-local CSV reports
                 </option>
               </select>
             </label>
             <p>
-              Demo records and operational CSV records never join.
-              Vendor/property directory references require verified same-account
-              IDs. Overview uses this same selected work-order source.
+              Demo records never mix with imported records. Vendor/property
+              joins require matching accounts and explicitly verified
+              identifiers.
             </p>
           </div>
-          {w.managed && !admin && (
-            <p className="insight-note">
-              Staff/viewer access is read-only. Administrators manage imports,
-              approved sources, API setup and retention.
-            </p>
-          )}
-          {w.managed && admin && !source && (
-            <p className="insight-note">
-              Create and select an approved CSV source below before importing
-              reports.
-            </p>
-          )}
-          {admin && (
-            <details className="settings-new-source" open={!source}>
-              <summary>Add an approved CSV source</summary>
-              <form
-                className="settings-form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void action(async () => {
-                    const created = await managedRequest<SourceConfig>(
-                      "/sources",
-                      w.managed!.csrf,
-                      "POST",
-                      profile,
-                    );
-                    await w.selectManaged(created.id);
-                  });
-                }}
-              >
-                <h3>Create a CSV source</h3>
-                <div className="vendor-import-grid">
-                  {(
-                    [
-                      ["name", "Source name"],
-                      ["account", "Verified source account"],
-                      ["scope", "Workspace scope"],
-                      ["timezone", "Reviewed source timezone"],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <label key={key}>
-                      {label}
-                      <input
-                        required
-                        maxLength={key === "scope" ? 500 : 100}
-                        value={profile[key]}
-                        onChange={(e) =>
-                          setProfile((p) => ({ ...p, [key]: e.target.value }))
-                        }
-                      />
-                    </label>
-                  ))}
-                  <label>
-                    Import behavior
-                    <select
-                      value={profile.behavior}
-                      onChange={(e) =>
-                        setProfile((p) => ({ ...p, behavior: e.target.value }))
-                      }
-                    >
-                      <option value="snapshot">
-                        Snapshot · archive absent records
-                      </option>
-                      <option value="upsert">
-                        Incremental upsert · disclose last-known carried rows
-                      </option>
-                    </select>
-                  </label>
-                </div>
-                <label className="vendor-attest">
-                  <input
-                    type="checkbox"
-                    checked={profile.approved}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, approved: e.target.checked }))
-                    }
-                  />{" "}
-                  I confirm this CSV source and minimized fields are approved
-                  for the authorized audience. This does not approve Rentvine
-                  API access.
-                </label>
-                <button
-                  className="primary"
-                  disabled={busy || !profile.approved}
-                >
-                  Create approved CSV source
-                </button>
-              </form>
-            </details>
-          )}
-          {source && admin && (
-            <div className="settings-source-policy">
-              <p>
-                <strong>Selected source:</strong> {source.name} ·{" "}
-                {source.behavior} behavior · approved{" "}
-                {source.approved ? "Yes" : "No"}
-              </p>
-              <label>
-                Selected source import behavior
-                <select
-                  value={source.behavior}
-                  onChange={(e) =>
-                    void action(() =>
-                      managedRequest(
-                        `/sources/${source.id}`,
-                        w.managed!.csrf,
-                        "PATCH",
-                        { approved: source.approved, behavior: e.target.value },
-                      ),
-                    )
-                  }
-                >
-                  <option value="snapshot">Snapshot</option>
-                  <option value="upsert">Incremental upsert</option>
-                </select>
-              </label>
-              <button
-                className="text-button"
-                disabled={busy}
-                onClick={() =>
-                  void action(() =>
-                    managedRequest(
-                      `/sources/${source.id}`,
-                      w.managed!.csrf,
-                      "PATCH",
-                      { approved: !source.approved, behavior: source.behavior },
-                    ),
-                  )
-                }
-              >
-                {source.approved
-                  ? "Suspend source approval"
-                  : "Restore source approval"}
-              </button>
-            </div>
-          )}
+          <p className="insight-note">
+            Use Imports &amp; History to map work orders, vendors or properties.
+            Reports replace their current snapshot; compatible prior
+            observations are kept separately. Missing rows do not mean a work
+            order was completed or deleted.
+          </p>
+          <p className="insight-note">
+            Live Rentvine API access, scheduled ingestion, Google Workspace
+            sign-in and server role controls are unavailable in this static
+            edition. The complete Phase 7 server edition remains on its separate
+            branch.
+          </p>
         </Panel>
       </div>
       <div
+        role="tabpanel"
         className="settings-tab-panel"
         id="settings-panel-imports"
-        role="tabpanel"
         aria-labelledby="settings-tab-imports"
         tabIndex={0}
         hidden={active !== "imports"}
       >
         <Panel
           title="Data health & import history"
-          eyebrow="SOURCE TIME AND RECEIPT TIME ARE DISTINCT"
+          eyebrow="MANUAL REPORTS · NEVER UPLOADED"
         >
           <div className="settings-import-actions">
-            {(["workOrders", "vendors", "properties"] as const).map(
-              (dataset) => (
-                <button
-                  className="outline-button"
-                  key={dataset}
-                  disabled={
-                    busy || (!!w.managed && (!admin || !source?.approved))
-                  }
-                  onClick={() => setImporting(dataset)}
-                >
-                  <FileUp size={15} />
-                  Import {dataset} report
-                </button>
-              ),
-            )}
+            {(["workOrders", "vendors", "properties"] as const).map((kind) => (
+              <button
+                className="outline-button"
+                key={kind}
+                disabled={busy}
+                onClick={() => setImporting(kind)}
+              >
+                <FileUp size={15} />
+                Import {kind} report
+              </button>
+            ))}
           </div>
           <div
             className="table-scroll"
-            tabIndex={0}
             role="region"
-            aria-label="Managed dataset health"
+            tabIndex={0}
+            aria-label="Local dataset health"
           >
             <table>
               <thead>
@@ -515,465 +267,322 @@ function DataSettingsContent({
                   <th scope="col">Dataset</th>
                   <th scope="col">Imported records</th>
                   <th scope="col">Report as of</th>
-                  <th scope="col">Last successful load / check</th>
-                  <th scope="col">Freshness / coverage</th>
+                  <th scope="col">Successful local load</th>
+                  <th scope="col">Coverage</th>
                 </tr>
               </thead>
               <tbody>
-                {datasetRows.map((d) => (
+                {data.map((d) => (
                   <tr key={d.id}>
                     <th scope="row">{d.datasetType}</th>
-                    <td>
-                      {d.rowCounts.accepted} accepted · {d.rowCounts.rejected}{" "}
-                      rejected
-                    </td>
+                    <td>{d.rowCounts.accepted}</td>
                     <td>{d.reportAsOf ?? "Unknown"}</td>
-                    <td>
-                      <time dateTime={d.importedAt} title={d.importedAt}>
-                        {displayReceiptTime(d.importedAt)}
-                      </time>
-                      <small>
-                        Last checked:{" "}
-                        {w.managedRefresh[d.datasetType]?.lastCheckedAt
-                          ? displayReceiptTime(
-                              w.managedRefresh[d.datasetType]?.lastCheckedAt,
-                            )
-                          : "Local evaluation only"}
-                      </small>
-                    </td>
-                    <td>
-                      {w.managed
-                        ? freshness(
-                            d.reportAsOf,
-                            d.importedAt,
-                            new Date().toISOString(),
-                            d.datasetType === "vendors"
-                              ? w.managed.settings.vendorStaleAfterHours
-                              : d.datasetType === "properties"
-                                ? w.managed.settings.propertyStaleAfterHours
-                                : w.managed.settings.rules.staleAfterHours,
-                          )
-                        : "Evaluation only; no operational policy"}
-                      <small>{d.completeness}</small>
-                    </td>
+                    <td>{displayReceiptTime(d.importedAt)}</td>
+                    <td>{d.completeness}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {!datasetRows.length && (
+          {!data.length && (
             <p className="empty-inline">
-              No CSV dataset selected or imported. Demo is fictional; no
-              operational refresh is claimed.
+              No CSV reports imported. Demo values do not enter this import
+              history.
             </p>
           )}
           {w.csv?.qualitySummary.map((issue) => (
-            <p className="insight-note" key={issue.code}>
+            <p key={issue.code} className="insight-note">
               {issue.safeMessage}
             </p>
           ))}
-          {w.managed ? (
-            <>
-              <div
-                className="table-scroll"
-                tabIndex={0}
-                role="region"
-                aria-label="Persistent import history"
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th scope="col">Attempt time</th>
-                      <th scope="col">Dataset / trigger</th>
-                      <th scope="col">Outcome</th>
-                      <th scope="col">Rows / behavior</th>
-                      <th scope="col">Validation details</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((row) => (
-                      <tr key={row.id}>
-                        <td>
-                          <time dateTime={row.at} title={row.at}>
-                            {displayReceiptTime(row.at)}
-                          </time>
-                        </td>
-                        <td>
-                          {row.dataset}
-                          <small>{row.trigger}</small>
-                        </td>
-                        <td>{row.status}</td>
-                        <td>
-                          {row.rows} · {row.behavior}
-                        </td>
-                        <td>
-                          {row.errors.join(" ") ||
-                            row.warnings.join(" ") ||
-                            "No reported validation issues"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {!history.length && (
-                <p className="empty-inline">
-                  No persistent import attempts for this scope.
-                </p>
-              )}
-            </>
-          ) : (
-            <p className="insight-note">
-              Persistent history is unavailable until the protected server is
-              configured. Local evaluation is lost on reload.
-            </p>
-          )}
-        </Panel>
-      </div>
-      <div
-        className="settings-tab-panel"
-        id="settings-panel-automation"
-        role="tabpanel"
-        aria-labelledby="settings-tab-automation"
-        tabIndex={0}
-        hidden={active !== "automation"}
-      >
-        <Panel
-          title="Automatic CSV processing"
-          eyebrow="DELIVERY PROCESSING ≠ RENTVINE REPORT GENERATION"
-        >
-          <p className="insight-note">
-            {w.managed?.ingestion.configured
-              ? "Server-side protected file ingestion is configured; only explicitly enabled approved source mappings are processed."
-              : "Not configured / not activated. Manual CSV upload remains supported."}{" "}
-            Rentvine automatic report generation and delivery are unverified. No
-            email or cloud-storage connector is assumed.
-          </p>
-          {admin && source && (
-            <form
-              className="settings-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void action(() =>
-                  managedRequest(
-                    `/sources/${source.id}/delivery`,
-                    w.managed!.csrf,
-                    "PUT",
-                    delivery,
-                  ),
-                );
-              }}
-            >
-              <div className="vendor-import-grid">
-                <label>
-                  Delivered report dataset
-                  <select
-                    value={delivery.dataset}
-                    onChange={(e) =>
-                      setDelivery((d) => ({
-                        ...d,
-                        dataset: e.target.value as DatasetKind,
-                      }))
-                    }
-                  >
-                    <option value="workOrders">Work orders</option>
-                    <option value="vendors">Vendors</option>
-                    <option value="properties">Properties</option>
-                  </select>
-                </label>
-                <label>
-                  Processing interval (minutes)
-                  <input
-                    required
-                    type="number"
-                    min="5"
-                    max="10080"
-                    value={delivery.intervalMinutes}
-                    onChange={(e) =>
-                      setDelivery((d) => ({
-                        ...d,
-                        intervalMinutes: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </label>
-              </div>
-              <label className="vendor-attest">
-                <input
-                  type="checkbox"
-                  checked={delivery.enabled}
-                  onChange={(e) =>
-                    setDelivery((d) => ({ ...d, enabled: e.target.checked }))
-                  }
-                />{" "}
-                Enable processing for this approved source after a successful
-                mapping review. A separate server operator gate and protected
-                inbox are required.
-              </label>
-              <button className="outline-button" disabled={busy}>
-                Save processing schedule
-              </button>
-            </form>
-          )}
-        </Panel>
-        <Panel
-          title="Rentvine API configuration"
-          eyebrow="NOT CONFIGURED · OWNERSHIP APPROVAL REQUIRED"
-        >
-          <p className="insight-note">
-            Official capabilities could not be verified in this environment. A
-            server-only reader interface exists; no endpoints, credentials, rate
-            limits or production synchronization are invented or activated.
-          </p>
-          <details>
-            <summary>Administrator setup requirements</summary>
-            <p>
-              Obtain ownership approval, verify official maintenance
-              fields/read-only permissions, authentication, pagination and
-              quotas, then implement and review the server adapter. Store
-              secrets only in the server’s secret manager or protected mounted
-              files. No API credential can be entered into this frontend. CSV
-              remains fully supported if API access is denied.
-            </p>
-          </details>
-        </Panel>
-      </div>
-      <div
-        className="settings-tab-panel"
-        id="settings-panel-security"
-        role="tabpanel"
-        aria-labelledby="settings-tab-security"
-        tabIndex={0}
-        hidden={active !== "security"}
-      >
-        <Panel
-          title="Staff access"
-          eyebrow="APPLICATION ACCESS IS CHECKED SEPARATELY FROM THE TEAM PORTAL"
-        >
-          <div className="settings-controls">
-            <div>
-              <strong>
-                {w.managed?.access.provider === "google_workspace"
-                  ? "Google Workspace staff sign-in"
-                  : w.managed
-                    ? "Configured OIDC staff sign-in"
-                    : "Staff sign-in not connected"}
-              </strong>
-              <p>
-                {w.managed
-                  ? `${w.managed.user.role} · ${w.managed.access.sessionHours}-hour session · explicit staff authorization`
-                  : "Use the approved work account after protected server setup. No passwords or OAuth secrets are entered here."}
-              </p>
-            </div>
-            <p>
-              {w.managed?.access.framingConfigured
-                ? "An exact portal ancestor allowlist is configured. Real Google Sites browser behavior still needs verification."
-                : "Portal framing is denied by default until exact ancestor origins are approved and configured."}
-            </p>
-          </div>
-        </Panel>
-        <Panel
-          title="Configuration"
-          eyebrow="ADMINISTRATOR-ONLY PERSISTENT SETTINGS"
-        >
-          {settings ? (
-            <form
-              className="settings-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void action(() =>
-                  managedRequest("/settings", w.managed!.csrf, "PUT", settings),
-                );
-              }}
-            >
-              <div className="vendor-import-grid">
-                <label>
-                  Aging threshold (calendar days)
-                  <input
-                    disabled={!admin}
-                    required
-                    type="number"
-                    min="0"
-                    value={settings.rules.agingNudgeDays}
-                    onChange={(e) =>
-                      setSettings(
-                        (s) =>
-                          s && {
-                            ...s,
-                            rules: {
-                              ...s.rules,
-                              agingNudgeDays: Number(e.target.value),
-                            },
-                          },
-                      )
-                    }
-                  />
-                </label>
-                <label>
-                  No-observed-change threshold (elapsed days)
-                  <input
-                    disabled={!admin}
-                    required
-                    type="number"
-                    min="1"
-                    value={settings.rules.noObservedChangeDays}
-                    onChange={(e) =>
-                      setSettings(
-                        (s) =>
-                          s && {
-                            ...s,
-                            rules: {
-                              ...s.rules,
-                              noObservedChangeDays: Number(e.target.value),
-                            },
-                          },
-                      )
-                    }
-                  />
-                </label>
-                <label>
-                  Configuration timezone
-                  <input
-                    disabled={!admin}
-                    required
-                    value={settings.rules.timezone}
-                    onChange={(e) =>
-                      setSettings(
-                        (s) =>
-                          s && {
-                            ...s,
-                            rules: { ...s.rules, timezone: e.target.value },
-                          },
-                      )
-                    }
-                  />
-                </label>
-                {(
-                  [
-                    ["retentionDays", "Data retention days", 1, 3650],
-                    [
-                      "vendorStaleAfterHours",
-                      "Vendor freshness hours",
-                      1,
-                      87600,
-                    ],
-                    [
-                      "propertyStaleAfterHours",
-                      "Property freshness hours",
-                      1,
-                      87600,
-                    ],
-                  ] as const
-                ).map(([key, label, min, max]) => (
-                  <label key={key}>
-                    {label}
-                    <input
-                      disabled={!admin}
-                      required
-                      type="number"
-                      min={min}
-                      max={max}
-                      value={settings[key]}
-                      onChange={(e) =>
-                        setSettings(
-                          (s) => s && { ...s, [key]: Number(e.target.value) },
-                        )
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
-              <p className="insight-note">
-                CSV calculations retain each report’s declared source timezone.
-                Retention removes expired encrypted observations, raw mapped
-                values, archives and audit/import history; expired current data
-                becomes unavailable. No missing row is inferred deleted from
-                Rentvine.
-              </p>
-              <button className="primary" disabled={!admin || busy}>
-                Save protected configuration
-              </button>
-            </form>
-          ) : (
-            <p className="empty-inline">
-              Protected configuration is unavailable. Demo rules and review
-              thresholds remain session-only until authenticated server setup is
-              complete.
-            </p>
-          )}
-        </Panel>
-        {admin && (
-          <Panel
-            title="Audit trail"
-            eyebrow="SAFE OPERATION METADATA · NO RAW ROW LOGS"
+          <div
+            className="table-scroll"
+            role="region"
+            tabIndex={0}
+            aria-label="Local import history"
           >
-            <div
-              className="table-scroll"
-              role="region"
-              tabIndex={0}
-              aria-label="Administrator audit trail"
-            >
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">Time</th>
-                    <th scope="col">Operation</th>
-                    <th scope="col">Actor</th>
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Receipt time</th>
+                  <th scope="col">Dataset</th>
+                  <th scope="col">Outcome</th>
+                  <th scope="col">Rows</th>
+                </tr>
+              </thead>
+              <tbody>
+                {w.storage.history.map((h, i) => (
+                  <tr key={i}>
+                    <td>{displayReceiptTime(h.at)}</td>
+                    <td>{h.kind}</td>
+                    <td>{h.outcome}</td>
+                    <td>{h.rows}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {audit.map((row) => (
-                    <tr key={row.id}>
-                      <td>
-                        <time dateTime={row.at} title={row.at}>
-                          {displayReceiptTime(row.at)}
-                        </time>
-                      </td>
-                      <td>{row.event}</td>
-                      <td>{row.actor}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {!audit.length && <p>No audit events yet.</p>}
-          </Panel>
-        )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="insight-note">
+            Up to 50 local load/replay entries and the current/previous
+            work-order and vendor reports are retained. This editable local
+            history is not a server audit log.
+          </p>
+        </Panel>
+      </div>
+      <div
+        role="tabpanel"
+        className="settings-tab-panel"
+        id="settings-panel-storage"
+        aria-labelledby="settings-tab-storage"
+        tabIndex={0}
+        hidden={active !== "storage"}
+      >
+        <Panel title="Local data & backups" eyebrow="THIS BROWSER PROFILE ONLY">
+          <p className="insight-note">
+            Data can be lost when site data is cleared, private browsing ends,
+            browser storage is evicted, or you change browser/device/origin.
+            Embedded and top-level storage may be separate partitions. Use a
+            local JSON backup to transfer between them. Other apps on the same
+            GitHub Pages origin can access origin storage; a repository path is
+            not a security boundary.
+          </p>
+          <div className="settings-import-actions">
+            <button
+              className="outline-button"
+              disabled={busy}
+              onClick={() =>
+                void action(async () => {
+                  const text = await w.exportLocal();
+                  const url = URL.createObjectURL(
+                    new Blob([text], { type: "application/json" }),
+                  );
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download =
+                    "tpm-local-backup-" +
+                    new Intl.DateTimeFormat("en-CA", {
+                      timeZone: "America/Mexico_City",
+                    }).format(new Date()) +
+                    ".json";
+                  a.click();
+                  setTimeout(() => URL.revokeObjectURL(url), 1000);
+                  setMessage(
+                    "Backup downloaded. Keep it private; it contains your locally imported mapped data.",
+                  );
+                })
+              }
+            >
+              <Download size={15} />
+              Export local backup
+            </button>
+            <button
+              className="outline-button"
+              onClick={() => {
+                setBackup(null);
+                setConfirmRestore(false);
+                setError("");
+                setRestoreOpen(true);
+              }}
+            >
+              Restore local backup
+            </button>
+            <button
+              className="outline-button"
+              onClick={() => {
+                setConfirmClear(false);
+                setClearOpen(true);
+              }}
+            >
+              <Trash2 size={15} />
+              Clear local data
+            </button>
+          </div>
+          <p className="insight-note">
+            JSON backups include mapped reports, original receipt times, rules,
+            review settings and local history. A SHA-256 check detects
+            accidental changes, not malicious edits or authenticity. Files are
+            not password-protected; protect and delete downloaded copies
+            separately.
+          </p>
+        </Panel>
+      </div>
+      <div
+        role="tabpanel"
+        className="settings-tab-panel"
+        id="settings-panel-settings"
+        aria-labelledby="settings-tab-settings"
+        tabIndex={0}
+        hidden={active !== "settings"}
+      >
         <Panel
-          title="Protected Google Sites embedding"
-          eyebrow="INTERNAL PORTAL IS NOT THE AUTHORIZATION BOUNDARY"
+          title="Maintenance settings"
+          eyebrow="LOCAL CONFIGURATION · SHARED RULE FUNCTIONS"
+        >
+          <div className="settings-import-actions">
+            <button
+              className="outline-button"
+              onClick={() => setRulesOpen(true)}
+            >
+              Edit aging & follow-up rules
+            </button>
+            <button
+              className="outline-button"
+              onClick={() => setReviewOpen(true)}
+            >
+              Edit review & scorecard settings
+            </button>
+          </div>
+          <p className="insight-note">
+            Current aging follow-up: strictly over {w.rules.agingNudgeDays}{" "}
+            calendar days. CSV calculations retain each report’s declared
+            timezone. Receipt display uses Mexico City. Missing appointments,
+            ratings, costs and source activity remain unavailable.
+          </p>
+        </Panel>
+        <Panel
+          title="Public hosting & Google Sites"
+          eyebrow="NO APPLICATION AUTHENTICATION"
         >
           <p className="insight-note">
-            Authenticate the application itself. Configure exact reviewed
-            ancestor origins on the server; default framing is denied. Sign in
-            at the dashboard’s top-level URL if third-party cookies block an
-            embedded session. Real hosting/identity-provider iframe behavior
-            requires validation before production. No security header is
-            weakened here.
+            GitHub Pages publishes the application and synthetic demo publicly.
+            Google Sites view restrictions do not protect the Pages URL. This
+            app does not upload CSVs or backups; anyone using this browser
+            profile/origin may still access its local data. Use a dedicated
+            profile/origin and minimize reports. No API key, password or OAuth
+            credential belongs here.
           </p>
-          <details>
-            <summary>Deployment and CSV-only setup checklist</summary>
-            <p>
-              Use the protected Node server behind HTTPS on a host with durable
-              encrypted storage and server-only secret mounts. Configure OIDC
-              discovery/client settings and an explicit staff subject-to-role
-              allowlist. Keep the application URL protected even outside Google
-              Sites. Review docs/DEPLOYMENT.md and docs/CSV_ONLY.md in the
-              repository for commands, retention, backups, precise CSP origins
-              and portal tests. No public deployment is performed.
-            </p>
-          </details>
+          <p className="insight-note">
+            Embed the published HTTPS project URL using Google Sites → Insert →
+            Embed → By URL. Prefer 1060px+ width and 800–1000px height. If
+            storage or downloads are blocked in the frame, use the same
+            dashboard in a new tab, then export/restore locally as needed.
+            Actual portal/browser policies require a user test after approved
+            publication.
+          </p>
         </Panel>
       </div>
       {importing && (
-        <ReportImport
-          dataset={importing}
-          source={w.managed ? source : null}
-          onClose={() => {
-            setImporting(null);
-            if (w.managed) void w.refreshManaged(source?.id);
-          }}
+        <ReportImport dataset={importing} onClose={() => setImporting(null)} />
+      )}
+      {rulesOpen && (
+        <RulesEditor
+          rules={w.rules}
+          onSave={w.updateRules}
+          onClose={() => setRulesOpen(false)}
         />
+      )}
+      {reviewOpen && <ReviewSettings onClose={() => setReviewOpen(false)} />}
+      {clearOpen && (
+        <Modal
+          title="Clear local dashboard data"
+          onClose={() => setClearOpen(false)}
+        >
+          <p>
+            This removes this edition’s saved reports, previous observations,
+            import history, settings and current local view. It does not delete
+            Rentvine records, other browser partitions/profiles, other
+            same-origin apps, or downloaded backups.
+          </p>
+          <label className="vendor-attest">
+            <input
+              type="checkbox"
+              checked={confirmClear}
+              onChange={(e) => setConfirmClear(e.target.checked)}
+            />
+            I have exported any needed backup and want to delete this local
+            workspace.
+          </label>
+          <button
+            className="primary"
+            disabled={!confirmClear || busy}
+            onClick={() =>
+              void action(async () => {
+                await w.clearLocal();
+                setClearOpen(false);
+              })
+            }
+          >
+            Delete local dashboard data
+          </button>
+          {error && <p role="alert">{error}</p>}
+        </Modal>
+      )}
+      {restoreOpen && (
+        <Modal
+          title="Restore local backup"
+          onClose={() => {
+            setRestoreOpen(false);
+            setBackup(null);
+          }}
+        >
+          <p>
+            Validation runs before replacement. Only this static edition’s
+            versioned JSON backup is supported. Existing data is retained if the
+            file fails checks.
+          </p>
+          <label>
+            Local backup JSON file
+            <input
+              type="file"
+              accept=".json,application/json"
+              disabled={busy}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                setBackup(null);
+                setConfirmRestore(false);
+                if (!file) return;
+                void action(async () => {
+                  if (file.size > MAX_LOCAL_BYTES + 4096)
+                    throw new Error("Backup exceeds 12 MiB.");
+                  const input = new TextDecoder("utf-8", {
+                    fatal: true,
+                  }).decode(await file.arrayBuffer());
+                  const state = await restoreBackup(input);
+                  setBackup({ input, state });
+                });
+              }}
+            />
+          </label>
+          {backup && (
+            <>
+              <p role="status">
+                Validated backup:{" "}
+                {backup.state.work
+                  ? "work-order report"
+                  : "no work-order report"}
+                , {backup.state.vendor ? "vendor report" : "no vendor report"},{" "}
+                {backup.state.property
+                  ? "property report"
+                  : "no property report"}{" "}
+                · {backup.state.history.length} history entries. Source:{" "}
+                {backup.state.source}.
+              </p>
+              <label className="vendor-attest">
+                <input
+                  type="checkbox"
+                  checked={confirmRestore}
+                  onChange={(e) => setConfirmRestore(e.target.checked)}
+                />
+                Replace my current local workspace with this validated backup.
+              </label>
+              <button
+                className="primary"
+                disabled={!confirmRestore || busy}
+                onClick={() =>
+                  void action(async () => {
+                    await w.restoreLocal(backup.input);
+                    setRestoreOpen(false);
+                    setBackup(null);
+                    setMessage("Local backup restored after validation.");
+                  })
+                }
+              >
+                Restore validated local backup
+              </button>
+            </>
+          )}
+          {error && <p role="alert">{error}</p>}
+        </Modal>
       )}
     </div>
   );

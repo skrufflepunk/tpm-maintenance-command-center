@@ -26,7 +26,7 @@ export function InsightSource({
           <strong>
             {source === "demo"
               ? "Fictional demo work orders"
-              : "CSV evaluation · session only"}
+              : "Browser-local CSV"}
           </strong>
           <p>
             Same selected work-order source as Explorer and Action Center ·

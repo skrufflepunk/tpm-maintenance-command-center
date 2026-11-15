@@ -29,17 +29,17 @@ export function ReviewSettings({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="Operational review settings" onClose={onClose}>
       <p>
-        Proposed session-only review thresholds, not risk ratings, service
+        Configurable browser-local review thresholds, not risk ratings, service
         levels or an approved vendor quality methodology. Work-order aging
-        continues to use the existing Demo rules setting. Settings reset on
-        reload.
+        continues to use the existing Demo rules setting. Settings persist when
+        browser storage is available.
       </p>
       <form
         className="rules-form"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           try {
-            updateReviewSettings(draft);
+            await updateReviewSettings(draft);
             onClose();
           } catch (err) {
             setError(err instanceof Error ? err.message : "Invalid settings.");

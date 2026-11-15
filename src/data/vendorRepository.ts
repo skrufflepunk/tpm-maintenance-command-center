@@ -1,3 +1,5 @@
+import { mappedCsv, savedReport } from "./local/reports";
+import type { SavedReport } from "./local/reports";
 import { parseCsv } from "./csv";
 import { dateKey } from "../domain/rules";
 import type { Coverage, SourceDate, Vendor } from "../domain/types";
@@ -279,17 +281,45 @@ export interface VendorRepository {
   clear(): void;
 }
 export class VendorCsvSession implements VendorRepository {
+  private report: SavedReport | null = null;
+  private priorReport: SavedReport | null = null;
+  private stagedSource: { input: string; options: VendorImportOptions } | null =
+    null;
+  getReport() {
+    return this.report ? structuredClone(this.report) : null;
+  }
+  getPriorReport() {
+    return this.priorReport ? structuredClone(this.priorReport) : null;
+  }
   private current: VendorDirectory | null = null;
   private staged: VendorPreview | null = null;
   private digest = "";
   private generation = 0;
   private removed: string[] = [];
-  hydrate(directory: VendorDirectory) {
+  hydrate(
+    directory: VendorDirectory,
+    previous: VendorDirectory | null = null,
+    report: SavedReport | null = null,
+    prior: SavedReport | null = null,
+    digest = "",
+  ) {
     this.generation++;
     this.staged = null;
     this.current = structuredClone(directory);
-    this.digest = "";
-    this.removed = [];
+    this.digest = digest;
+    this.report = report;
+    this.priorReport = prior;
+    const comparable =
+      previous &&
+      previous.dataset.sourceAccountId === directory.dataset.sourceAccountId &&
+      previous.dataset.reportScope.comparisonKey ===
+        directory.dataset.reportScope.comparisonKey &&
+      previous.dataset.mappingVersion === directory.dataset.mappingVersion;
+    this.removed = comparable
+      ? previous.vendors
+          .filter((v) => !directory.vendors.some((n) => n.id === v.id))
+          .map((v) => v.id)
+      : [];
   }
   getDirectory() {
     return this.current ? structuredClone(this.current) : null;
@@ -300,8 +330,20 @@ export class VendorCsvSession implements VendorRepository {
   async previewImport(input: string, options: VendorImportOptions) {
     const generation = ++this.generation;
     this.staged = null;
-    const result = await previewVendorCsv(input, structuredClone(options));
-    if (generation === this.generation) this.staged = structuredClone(result);
+    let projected = input;
+    try {
+      projected = mappedCsv(input, options);
+    } catch {
+      /* Parser reports validation errors. */
+    }
+    const result = await previewVendorCsv(projected, structuredClone(options));
+    if (generation === this.generation) {
+      this.staged = structuredClone(result);
+      this.stagedSource = {
+        input: projected,
+        options: structuredClone(options),
+      };
+    }
     return result;
   }
   commitImport(id: string) {
@@ -319,6 +361,16 @@ export class VendorCsvSession implements VendorRepository {
     if (staged.digest === this.digest && this.current)
       return structuredClone(this.current);
     const next = staged.directory!;
+    const receivedAt = new Date().toISOString();
+    next.dataset.importedAt = receivedAt;
+    this.priorReport = this.report;
+    this.report = savedReport(
+      "vendors",
+      this.stagedSource!.input,
+      this.stagedSource!.options,
+      next.id,
+      receivedAt,
+    );
     const comparable =
       this.current &&
       this.current.dataset.sourceAccountId === next.dataset.sourceAccountId &&
@@ -334,11 +386,15 @@ export class VendorCsvSession implements VendorRepository {
     return structuredClone(this.current);
   }
   discardPreview() {
+    this.stagedSource = null;
     this.generation++;
     this.staged = null;
   }
   clear() {
     this.generation++;
+    this.report = null;
+    this.priorReport = null;
+    this.stagedSource = null;
     this.current = null;
     this.staged = null;
     this.digest = "";

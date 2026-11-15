@@ -8,26 +8,30 @@ export function RulesEditor({
   onClose,
 }: {
   rules: Rules;
-  onSave: (r: Rules) => void;
+  onSave: (r: Rules) => void | Promise<void>;
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(rules),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
   return (
-    <Modal title="Demo rule settings" onClose={onClose}>
+    <Modal title="Local rule settings" onClose={onClose}>
       <p className="muted">
-        Proposed values for this demo session only. These are not approved
-        service levels. Demo dates use the illustrative {rules.timezone}{" "}
-        timezone; CSV evaluation uses its declared report timezone.
+        Configurable local review values. These are not approved service levels.
+        Demo dates use the illustrative {rules.timezone} timezone; CSV
+        evaluation uses its declared report timezone.
       </p>
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          setBusy(true);
           try {
-            onSave(validateRules(draft));
+            await onSave(validateRules(draft));
             onClose();
           } catch (err) {
             setError((err as Error).message);
+          } finally {
+            setBusy(false);
           }
         }}
         className="rules-form"
@@ -95,14 +99,14 @@ export function RulesEditor({
         <p className="muted">
           No observed-change nudges are available without comparable history.
           Vendor freshness is unavailable; it does not inherit this threshold.
-          Settings reset on reload.
+          Settings persist when browser storage is available.
         </p>
         <div className="form-actions">
           <button type="button" onClick={() => setDraft(defaultRules)}>
             Restore defaults
           </button>
-          <button className="primary" type="submit">
-            Apply demo rules
+          <button className="primary" type="submit" disabled={busy}>
+            {busy ? "Saving local rules…" : "Apply local rules"}
           </button>
         </div>
       </form>

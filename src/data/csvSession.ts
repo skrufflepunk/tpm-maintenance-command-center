@@ -1,3 +1,5 @@
+import { mappedCsv, savedReport } from "./local/reports";
+import type { SavedReport } from "./local/reports";
 import { previewCsv } from "./csv";
 import type { CsvOptions, CsvPreview } from "./csv";
 import type { Snapshot, WorkOrder } from "../domain/types";
@@ -15,18 +17,36 @@ export interface SessionHistory {
   newIds: string[];
 }
 export class CsvSession {
+  private report: SavedReport | null = null;
+  private priorReport: SavedReport | null = null;
+  getReport() {
+    return this.report ? structuredClone(this.report) : null;
+  }
+  getPriorReport() {
+    return this.priorReport ? structuredClone(this.priorReport) : null;
+  }
   private current: Snapshot | null = null;
   private previous: Snapshot | null = null;
   private digest = "";
   private revision = 0;
   private previewGeneration = 0;
-  private staged: { preview: CsvPreview; revision: number } | null = null;
+  private staged: {
+    preview: CsvPreview;
+    revision: number;
+    input: string;
+  } | null = null;
   latestAttempt = "No CSV import attempted.";
   async preview(input: string, options: CsvOptions) {
     this.staged = null;
     const generation = ++this.previewGeneration;
     const revision = this.revision;
-    const preview = await previewCsv(input, options);
+    let projected = input;
+    try {
+      projected = mappedCsv(input, options);
+    } catch {
+      /* Existing parser reports safe structural/mapping errors. */
+    }
+    const preview = await previewCsv(projected, options);
     if (generation !== this.previewGeneration)
       return {
         ...preview,
@@ -37,7 +57,11 @@ export class CsvSession {
       ? "Latest preview rejected; previous successful data retained."
       : "Candidate validated; not loaded.";
     if (!preview.errors.length)
-      this.staged = { preview: structuredClone(preview), revision };
+      this.staged = {
+        preview: structuredClone(preview),
+        revision,
+        input: projected,
+      };
     return structuredClone(preview);
   }
   commit(id: string) {
@@ -57,16 +81,25 @@ export class CsvSession {
         "Identical CSV replay; no duplicate records or history created.";
       return this.get()!;
     }
+    this.priorReport = this.report;
+    this.report = savedReport(
+      "workOrders",
+      staged.input,
+      staged.preview.options,
+      staged.preview.snapshot.id,
+    );
     this.previous = this.current;
     this.current = structuredClone(staged.preview.snapshot);
     const loadedAt = new Date().toISOString();
+    this.report.receivedAt = loadedAt;
     this.current.importedAt = loadedAt;
     this.current.datasets.forEach((d) => {
       d.importedAt = loadedAt;
     });
     this.digest = staged.preview.digest;
     this.revision++;
-    this.latestAttempt = "CSV loaded into this browser session only.";
+    this.latestAttempt =
+      "CSV loaded locally; browser storage status is shown in Data & Settings.";
     return this.get()!;
   }
   discardPreview() {
@@ -78,6 +111,8 @@ export class CsvSession {
   }
   clear() {
     this.previewGeneration++;
+    this.report = null;
+    this.priorReport = null;
     this.current = null;
     this.previous = null;
     this.staged = null;
@@ -85,14 +120,21 @@ export class CsvSession {
     this.revision++;
     this.latestAttempt = "CSV session cleared.";
   }
-  hydrate(current: Snapshot, previous: Snapshot | null) {
+  hydrate(
+    current: Snapshot,
+    previous: Snapshot | null,
+    report: SavedReport | null = null,
+    priorReport: SavedReport | null = null,
+    digest = "",
+  ) {
     this.discardPreview();
     this.current = structuredClone(current);
     this.previous = previous ? structuredClone(previous) : null;
-    this.digest = "";
+    this.report = report;
+    this.priorReport = priorReport;
+    this.digest = digest;
     this.revision++;
-    this.latestAttempt =
-      "Protected server snapshot loaded; no browser persistence.";
+    this.latestAttempt = "Validated browser-local CSV loaded.";
   }
   observationPair() {
     return this.history().comparable && this.previous && this.current

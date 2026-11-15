@@ -148,7 +148,7 @@ export function ActionCenter({ demo, rules, onOpenExplorer, ref }: Props) {
           <strong>
             {source === "demo"
               ? "Fictional demo"
-              : "CSV evaluation · session only"}
+              : "Browser-local CSV"}
           </strong>
           <p>
             Same selected source as Work Order Explorer · no demo/CSV mixing

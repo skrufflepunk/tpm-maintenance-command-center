@@ -1,34 +1,55 @@
-# TPM Maintenance Command Center
+# TPM Maintenance Command Center — Free Static Edition
 
-Planning package for an internal, read-only maintenance dashboard. Build the interface first, import CSV reports next, and optionally connect a verified Rentvine API later. Rentvine remains the source of truth.
+Phase 8 is a **single-user, browser-only dashboard** for free GitHub Pages hosting and embedding in the existing Google Site. Overview, Work Orders, Action Center, Vendors, Properties and Analytics retain the existing TPM desktop design, shared rules, filters, charts and read-only workflows. Rentvine is never modified; drafts remain editable and copy-only.
 
-## Contents
-| File | Purpose |
-|---|---|
-| [PROJECT.md](PROJECT.md) | Scope, phases, decisions and completion criteria |
-| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | TPM visual direction, responsive layout and accessibility |
-| [FEATURES.md](FEATURES.md) | Six tabs, filters and acceptance criteria |
-| [DATA_SCHEMA.md](DATA_SCHEMA.md) | Normalized entities, CSV validation and provenance |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Adapter design, protected hosting, security and embedding |
-| [BUSINESS_RULES.md](BUSINESS_RULES.md) | Metrics, unknowns, changes and configurable proposals |
-| [AGENTS.md](AGENTS.md) | Coding-agent implementation boundaries |
-| [.env.example](.env.example) | Safe illustrative public/server configuration template |
+**GitHub Pages is public hosting. Google Sites access restrictions do not protect the hosted app or its direct URL.** There is no sign-in, server authorization, API key, backend process, paid hosting service or cloud data synchronization in this edition. Visitors start with clearly fictional demo data; their CSV imports are processed locally and are not uploaded by the app.
 
-## Getting started
-1. Extract the ZIP and put these nine files at the root of a private GitHub repository.
-2. Read PROJECT.md, then the remaining specifications. Confirm pending decisions before handling operational data.
-3. Have the developer scaffold React/TypeScript/Tailwind, route the six tabs, and implement shared domain contracts with synthetic fixtures. This ZIP has no package.json, runnable app, installed dependencies, or deployment.
-4. Once configuration loading exists, copy .env.example to a local ignored .env and configure only the settings needed for that phase. No API credentials are needed for the interface or CSV phase. Add .env, .env.*, real CSVs, snapshots and private assets to .gitignore while explicitly allowing .env.example. The developer must provide and verify .gitignore; it is not included here.
-5. Inspect sanitized source headers, define reviewed mappings/statuses, test preview/import and all missing-data cases, then import approved reports in a protected environment.
-6. Choose protected hosting and an access provider; verify direct and embedded access restrictions before Google Sites use. Follow ARCHITECTURE.md if iframe sign-in cannot work.
-7. Only investigate API implementation after the read-only capability and account-owner access decisions are confirmed.
+## Run and verify locally
 
-No install/build command is prescribed until an application scaffold and lockfile exist. The implementing developer must document exact runtime requirements, commands, verified environment handling, deployment steps, and tests in this README when code is added.
+Node 24+ is needed only for development/building; the published site needs a modern desktop Chrome/Edge browser, not a running Node server.
 
-## Data and access
-Do not upload real tenant/vendor data to a public repo or public demo. Vendor business contacts are internal information. Redact or omit free-text summaries that may include private details. Never place credentials in browser settings, URLs, CSVs, or source control. Secure Google Sites membership alone does not secure the embedded application.
+```bash
+npm ci
+npm run dev -- --port 5173
+npm run build
+npm run lint
+npm test
+npm run test:e2e
+npm run test:pages
+```
 
-## Basis and open items
-Prepared from the referenced “Maintenance Dashboard Plan” conversation and the current request. The later six-tab, dashboard-first direction supersedes earlier five-tab and Google Sheets-first suggestions. Sheets/Apps Script automation is optional future work. No source CSV schemas, screenshots, brand assets, endpoint documentation or operational records were validated for this package. Historic record counts and vendor names are deliberately not used as fixtures or current facts.
+If the default npm cache is not writable in this workspace, use `npm ci --cache /workspace/.npm-cache`. Local Vite/preview is for development only. `build` runs strict TypeScript, produces static `dist/` assets with relative paths, applies a production Content Security Policy and checks for backend/credential/report artifacts. `test:pages` serves that built bundle under a project path and in a synthetic cross-origin iframe; it does not contact GitHub Pages or publish anything. The local fixture HTTP servers are test tools, not an application backend.
 
-Thresholds, scheduling examples, layout breakpoints and implementation choices explicitly marked proposed remain configurable proposals. Exact TPM color values, approved palm/logo assets, report scope/mappings, timezone, access provider, retention, and optional API feasibility still need confirmation. Morning Briefing and aging nudges are rule-based in-app guidance, not a messaging service or emergency monitoring system.
+The regular browser matrix uses Chrome at 1366/1440/1920px and Edge at 1440px when installed; CI can use Playwright's downloaded Chromium. Optional legacy narrow/mobile checks remain opt-in. No dedicated mobile feature work is included. Screenshots/traces use synthetic records only and stay outside published assets.
+
+## Browser CSV workflow
+
+Use **Data & Settings → Imports & History**, or the existing Work Orders/Vendors import controls. Upload work-order, vendor and property reports separately, map actual headers and enum values explicitly, declare account/scope/timezone/report date, validate and review before loading. No Rentvine-native column names or API fields are assumed. Stable IDs are required; duplicate/missing IDs reject the candidate. Unknown/invalid optional fields remain unknown with coverage warnings. Vendor/property joins need verified ID namespaces and the same account; names never create joins. Demo rows never fill CSV gaps.
+
+Imports replace that dataset's current observed snapshot. The previous work-order/vendor observation remains separate for compatible comparisons and missing-row evidence; absence never means closure/deletion. Full reports may still be partial in scope. The static edition has no server upsert/archives, multi-user role management or scheduled processing. Those server features remain available on the preserved Phase 7 branch.
+
+All six sections follow the selected Demo/CSV workspace while keeping independent page filters. Configurable local aging/follow-up/property review/scorecard settings use the original shared domain functions. Source calculations keep each report's declared timezone; receipt/audit-style display uses Mexico City. No appointments, ratings, costs, history or AI claims are invented.
+
+## Local storage, backup and clear
+
+Validated mapped columns and metadata are stored in **IndexedDB**, scoped to this app's URL path. Unmapped report columns are discarded. The app caps saved state at **12 MiB**; each CSV remains limited to **2 MiB, 10,000 rows, 100 columns and 500 characters per mapped cell**. It retains current/previous work-order and vendor reports, the current property report, local settings and up to 50 load/replay entries. Actual browser quota/policy may be lower. Failed/quota/stale-tab writes retain the previous saved data. Corrupt stored data is quarantined for explicit clear/restore rather than silently overwritten.
+
+**Data & Settings → Local Data & Backups** provides JSON export, validated restore preview and confirmed clear-data controls. Backup JSON contains mapped report values, receipt times, settings and local history. A SHA-256 integrity check detects accidental changes; it is not a signature or access control. Restores re-run schema and CSV validation before replacing anything. Clear removes this edition's reports/history/settings and resets the local view, including other open tabs in the same storage partition when BroadcastChannel is available; it leaves unrelated apps/site keys alone. Existing downloads, other browser profiles/partitions/devices and forensic disk recovery are outside these controls.
+
+**Local data and backups are not encrypted or password-protected.** Anyone using the same browser profile/origin may access them. GitHub project paths are not origin security boundaries: other apps on `OWNER.github.io` share that origin. Use a dedicated trusted Pages origin/account and browser profile, minimize/redact reports, protect downloaded backups and export regularly. Browser eviction, private browsing, device/profile changes or site-data clearing can lose data. Embedded and top-level storage may be partitioned; export/restore when moving between them. If storage is blocked, the app explicitly falls back to temporary memory and offers a new-tab path. There is no silent cloud backup or guaranteed durable storage.
+
+## Publishing and Google Sites
+
+See [GitHub Pages instructions](docs/DEPLOYMENT.md), [Google Sites embed steps](docs/GOOGLE_SITES.md), [local data guide](docs/CSV_ONLY.md), and [static security checklist](docs/PRODUCTION_CHECKLIST.md).
+
+The prepared [Pages workflow](.github/workflows/pages.yml) has **only `workflow_dispatch`**, no push/PR/schedule trigger. It defaults to review-only. Publishing additionally requires the manual publish checkbox, exact `PUBLISH` confirmation, passing build/lint/unit/audit/production-browser checks and the Pages environment gate. Third-party actions are pinned to upstream tag SHAs verified during preparation. Only reviewed `dist/` is uploaded; source reports, browser databases, JSON backups, tests and traces are excluded. No workflow or Pages deployment was run in this task.
+
+The $0 route assumes an eligible **GitHub Free public repository**, normal Pages/Actions limits and the free `github.io` URL; no custom domain or paid runner is required. Private-repository Pages availability can depend on a paid plan. Review the entire repository/history for confidential material before making anything public; use a clean public static-only repository if needed. Do not change visibility or publish the historical server repository blindly.
+
+Use Google Sites **Insert → Embed → By URL** with the published HTTPS project URL. Prefer 1060px+ actual content width and 800–1000px height; the tested constrained frame is 1060×620. Hash navigation and relative assets work at repository subpaths. If browser policy blocks storage/downloads, use **Open dashboard in a new tab** and transfer a private local backup as needed. Actual published Site/browser acceptance remains a user step after approved publication; local tests do not certify a real Google Site.
+
+## Preserved server edition
+
+The complete Phase 7 server implementation is unchanged at **`1f8a0e1`** on **`archive/phase-7-server`** and **`feat/phase-7-sites-readiness`**. It includes OIDC/roles, encrypted server SQLite, optional gated delivery and server deployment artifacts. This static branch intentionally removes those runtime requirements. Branch preservation is local in this workspace; push the archive separately when preparing a remote review. No branch is merged or published automatically.
+
+See [PHASE8_REVIEW.md](PHASE8_REVIEW.md) for implementation/test results and limitations. Earlier phase reviews describe their historical branches; current Phase 8 sections in the eight specifications supersede server-only/no-browser-storage requirements for this explicitly authorized edition. No real TPM/customer data, credential, live Rentvine connection or source write is included.

@@ -1,5 +1,25 @@
 # Design system
 
+## Phase 8 static presentation
+
+Preserve the six main navigation labels, navy sidebar, compact tropical header, original palm/mountain artwork, existing cards/tables/charts and desktop-first 1366–1920px behavior. No dedicated mobile redesign is added. The settings utility retains four keyboard-accessible tabs, now Data Sources, Imports & History, Local Data & Backups and Settings, with local status/limits and backup/clear dialogs. Do not display fake staff authentication or server role controls.
+
+A compact persistent notice identifies public hosting/no sign-in and browser-local imports without implying data was uploaded. Distinguish saved, temporary and blocked/corrupt states. Actual receipt time is separate from source-as-of. Preserve native modal focus containment/return and explicit destructive/restore confirmation. The embedded-only new-tab link supports browser storage/download restrictions without another portal or false Google Sites protection.
+
+## Phase 7 portal and settings layout
+
+Preserve the compact tropical shell and six primary navigation names. Data & Settings remains a utility and now uses four real accessible tabs: Data Sources, Imports & History, Automation, Security & Settings. Tabs support arrows/Home/End, selected/focus states, labeled panels and section-only URL context. Switching sections preserves unsaved form values; reloading restores the section but not unsaved edits. Source/identity changes retain existing safe view resets. Source creation collapses after a source is selected; report import buttons are under Imports & History.
+
+A compact actual-successful-load strip keeps receipt time separate from source report freshness. Settings tables fit a 1060px frame without unnecessary inner horizontal overflow. Normal document scrolling and fixed sidebar remain; dialogs keep focus containment/return. The embedded-only secure-tab link and data-free staff access gate support blocked cookies without a new portal, AI claims, cookie downgrade or framing bypass. No dedicated mobile design is added.
+
+## Phase 6 Data & Settings presentation
+
+Preserve the existing navy sidebar, original tropical artwork, compact header and exactly six main navigation labels. Data & Settings is a secondary utility link below those destinations, not a seventh main tab. Its compact source/access strip, three capability summaries, dataset health/history tables, explicit mapping/preview dialogs and administrator forms reuse existing semantic tokens, native focus-contained dialogs, text-and-color validation and page-level scrolling.
+
+Distinguish fictional/local evaluation, authenticated CSV and unavailable API modes visibly. Show administrator/viewer capabilities without exposing secrets or implying API activation. Reports keep source-as-of separate from receipt/check times; receipt/audit times display Mexico City with original ISO evidence available. Empty, expired, unapproved, failed and inaccessible sources need explicit recoverable states. All six workspaces now show the same selected source label, including Overview.
+
+Maintain desktop 1366/1440/1920 and local 1060×620 iframe usability, keyboard interaction and basic narrow reflow. No dedicated mobile feature development or new public deployment is included. Framing defaults to denied; real protected Google Sites/cookie behavior is an external verification step, not a visual assurance. Earlier phase independent-source descriptions are historical.
+
 ## Visual direction
 An understated, polished TPM command center: deep navy navigation, blue interactive accents, calm neutral surfaces, readable tables, and restrained palm imagery. Use approved TPM logo/palm assets when available; use a generic decorative palm placeholder clearly identified during development until then. Do not infer logo rights, brand hex values, or an exact prior screenshot layout from this document.
 
@@ -28,3 +48,38 @@ Target WCAG 2.2 AA, keyboard operation, visible focus, logical headings, labeled
 
 ## Design preservation
 Implement reusable components and tokens. Capture approved screenshots with synthetic data. Make later API work behind the data layer without redesigning screens. Seek a product decision before substantial layout or brand changes.
+
+## Reference-led Overview redesign
+The user supplied a tropical maintenance-dashboard reference and requested a denser visual treatment of the existing application. Overview now uses an original SVG sunset/mountain/palm landscape in the navy sidebar and header, a serif command-center title, sidebar-only navigation, tinted KPI cards, and a desktop insights rail. The six documented navigation names remain unchanged. Tablet panels reflow to two columns; mobile panels stack and retain labeled scroll containers for wide tables. The exact palette and wordmark remain provisional rather than an approved logo reproduction.
+
+The Action Center incorporates the preserved Morning Briefing. The status donut, property heatmap, vendor workload, monthly creation/completion chart and sortable work-order table use the shared filtered snapshot. Color is supplemented by names and counts. The assistant is labeled Coming soon; no AI responses, performance percentages, source events or history are invented. Recent Activity explicitly states that no event log exists.
+
+## Overview polish
+The command-center header is now 100px on desktop/tablet and 132px on mobile, preserving the original mountain/palm landscape and wordmark. Five primary cards show Open Work Orders (known active), Awaiting Approval, Over 7 Days Old (the label follows the configured threshold), Completed This Month (the report's month, not the browser month), and Average Days to Close (eligible observed completion pairs). Sample sizes, precision and exclusions remain visible. Empty or incompatible duration cohorts show Unavailable.
+
+Work-order rows use stronger text-and-dot status badges, threshold-qualified age indicators, explicit assignment coverage and specific read-only review prompts. Sticky sortable table headers and zebra rows improve scanning; the table retains keyboard-accessible scrolling at narrow widths. The compact assistant rail remains rules-based and explicitly marks AI and external integrations as unavailable. Focused presentation adjustments live in `src/polish.css` after the existing stylesheet.
+
+## Work Order Explorer presentation
+Explorer reuses the tropical shell and semantic tokens. A source-qualified report strip precedes compact multi-select filters, five scoped summary cards and a sortable/paginated register. Unknown, pending and aging states retain text labels as well as color. The register fits wide desktop layouts and provides a labeled keyboard-scrollable region on narrower screens; work-order numbers open complete read-only details. CSV mapping and preview use the existing focus-contained native modal pattern. No source-system action is enabled by visual emphasis.
+
+## Current approved desktop-first layout
+The horizontal navigation bar has been removed. Preserve the navy sidebar's icons, active state, TPM wordmark and original mountain/palm artwork. A fixed sidebar fills the current viewport (including iframe viewports); a matching navy shell background continues down long documents. Short-height desktop frames compact the same navigation/footer, with scrolling only if content genuinely exceeds available height. Main content remains offset from the sidebar.
+
+Explorer uses one Work Order Explorer heading and a compact source/actions strip. CSV import is a secondary text action. The priority columns are work-order number, property, issue, status, vendor, age and next action. Approval, category, priority and dates remain in the detail view, with secondary sorting preserved in the register controls. KPI buttons expose their pressed state and a visible filter reset. Paginated tables use page-level vertical scrolling; horizontal overflow is a fallback for genuinely narrow embedded viewports rather than a desktop default.
+
+Desktop widths 1366–1920px and desktop Chrome/Edge are the development and QA targets for this and future phases. No new dedicated mobile interface or screenshots are required. Keep basic reflow, keyboard access, contrast and approved design intact. Actual protected Google Sites integration still requires validation against the portal's real framing and authentication setup.
+
+## Phase 3 Action Center
+Preserve the approved navy sidebar, full-height scrolling behavior, mountain/palm artwork and desktop-first content grid. Action Center has a source-qualified strip, compact filters, five eligibility-qualified KPI buttons, navy Morning Briefing and a six-column queue grouping work-order/property, issue/status, vendor, age/approval/priority, reasons and recommendations. This keeps all requested information visible at desktop sizes with horizontal scrolling only inside narrower iframe viewports.
+
+The detail modal reuses established source fields/history and adds a clearly labeled facts/recommendations section and editable local template editor. Native dialog focus containment, disclosure target sizes, clipboard feedback, pressed-state filter buttons and text-and-color reason badges remain accessible. No dedicated mobile design, duplicate navigation or fake assistant/chat experience is introduced.
+
+## Phase 4 Vendor Watch
+Keep the approved full-height navy sidebar, original tropical artwork, compact header and six navigation labels. The Vendors destination has one Vendor Watch heading, a compact dual-source strip, concise provenance, labeled directory filters, five compact KPI cards, a desktop register and an evidence-qualified follow-up table. KPI units distinguish vendors from work orders; Unavailable remains readable. No duplicate navigation, decorative charts with invented performance, or dedicated mobile design is added.
+
+Profiles and mapping previews reuse the established native dialog with keyboard containment/focus return. Contacts/coverage/history remain readable text; sortable headers, labeled selectors, draft editors, clipboard feedback and status labels remain keyboard-accessible. Tables use document scrolling with horizontal overflow only as a narrow-iframe fallback. Desktop Chrome/Edge and the local 1060×620 iframe are the QA targets; actual protected Google Sites framing/authentication still needs separate verification.
+
+## Phase 5 Properties and Analytics
+Preserve the existing full-height navy sidebar, original tropical header/artwork, single primary navigation and compact desktop styling. Properties adds five tinted scoped metrics, a nine-column desktop directory grouping secondary metadata, labeled review signals and profile/history dialogs. Zero-workload properties remain visible under work-order filtering. Review flags use text and color and are explicitly count thresholds rather than risk ratings.
+
+Analytics uses source/cohort filters, five compact KPI drill-downs, an actual created/completed bar chart with data table, clickable labeled breakdown bars, precision-specific duration evidence and comparison tables. Charts expose exact counts and record drill-downs; empty/historical/financial gaps are explicit. Long pages use document scrolling with a viewport-fixed sidebar; table horizontal scrolling is a constrained-iframe fallback. Configurable vendor scorecards reuse the same table/dialog conventions. No dedicated mobile visuals, duplicate navigation or decorative invented trends are introduced.

@@ -1,0 +1,265 @@
+/* Desktop-first corrections to the approved TPM workspace, including iframe-sized viewports. */
+@media (min-width: 768px) {
+  .app-shell {
+    --sidebar-width: 208px;
+    background: linear-gradient(
+      to right,
+      #062650 0 var(--sidebar-width),
+      var(--color-surface-canvas) var(--sidebar-width) 100%
+    );
+  }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+  }
+  .workspace {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    min-width: 0;
+  }
+  .sidebar .brand,
+  .sidebar nav,
+  .sidebar-label,
+  .sidebar-bottom {
+    flex-shrink: 0;
+  }
+  .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1250px) {
+  .app-shell {
+    --sidebar-width: 185px;
+  }
+}
+@media (min-width: 768px) and (max-height: 750px) {
+  .sidebar .brand {
+    padding: 18px 20px 12px;
+  }
+  .sidebar .brand strong {
+    font-size: 40px;
+  }
+  .sidebar .brand-mark {
+    top: 26px;
+  }
+  .sidebar nav a {
+    padding: 9px 12px;
+    margin: 3px 0;
+    min-height: 39px;
+  }
+  .sidebar-bottom > p {
+    font-size: 13px;
+    margin: 8px 0;
+  }
+  .sidebar-profile {
+    padding: 12px 0;
+    margin-top: 14px;
+  }
+  .sidebar-bottom {
+    padding-top: 12px;
+  }
+  .sidebar-label {
+    padding-top: 6px;
+  }
+}
+.main {
+  padding-top: 10px;
+}
+.page-heading {
+  margin-bottom: 8px;
+}
+.explorer {
+  gap: 9px;
+  margin-top: 9px;
+}
+.source-bar {
+  padding: 8px 12px;
+  gap: 14px;
+}
+.source-bar p {
+  margin-top: 2px;
+}
+.source-bar .explorer-actions {
+  margin: 0;
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+.source-bar label {
+  flex-shrink: 0;
+}
+.explorer-actions .csv-backup {
+  font-weight: 500;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.explorer-provenance {
+  font-size: 9px;
+  gap: 4px 15px;
+}
+.explorer .filter-controls {
+  padding: 8px 10px;
+}
+.explorer-kpi {
+  cursor: pointer;
+  text-align: left;
+  padding: 10px 13px;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
+}
+.explorer-kpi[aria-pressed="true"] {
+  border-color: #0b65d3;
+  box-shadow: inset 0 0 0 1px #0b65d3;
+}
+.explorer-kpi:hover {
+  box-shadow: 0 2px 8px #173b6814;
+}
+.explorer-kpi strong {
+  font-size: 29px;
+}
+.explorer-kpi small {
+  margin-top: auto;
+}
+.kpi-filter-chip {
+  margin: 0 10px 9px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #e8f1ff;
+  color: #244d7c;
+  font-size: 11px;
+}
+.main .table-scroll {
+  max-height: none;
+}
+.explorer-table {
+  margin-top: 10px;
+  max-height: none;
+}
+.explorer-table table {
+  min-width: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+.explorer-table th:nth-child(1) {
+  width: 11%;
+}
+.explorer-table th:nth-child(2) {
+  width: 13%;
+}
+.explorer-table th:nth-child(3) {
+  width: 20%;
+}
+.explorer-table th:nth-child(4) {
+  width: 11%;
+}
+.explorer-table th:nth-child(5) {
+  width: 16%;
+}
+.explorer-table th:nth-child(6) {
+  width: 9%;
+}
+.explorer-table th:nth-child(7) {
+  width: 20%;
+}
+.explorer-table th,
+.explorer-table td {
+  padding: 9px 10px;
+}
+.explorer-table td,
+.explorer-table th {
+  overflow-wrap: anywhere;
+}
+.explorer-table .sort-button {
+  flex-wrap: wrap;
+  font-size: 10px;
+}
+.source-link-action {
+  margin-top: 16px;
+}
+.source-link-action button:disabled {
+  color: #52637a;
+  background: #f1f4f8;
+  cursor: not-allowed;
+}
+.source-link-action a {
+  display: inline-flex;
+  width: fit-content;
+}
+@media (max-width: 1000px) {
+  .source-bar {
+    flex-wrap: wrap;
+  }
+  .source-bar .explorer-actions {
+    margin-left: auto;
+  }
+  .explorer-table table {
+    min-width: 860px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .explorer-kpi {
+    transition: none;
+  }
+}
+.register-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.register-sort-controls > label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.register-sort-controls select {
+  max-width: 155px;
+}
+/* Let the page provide vertical scrolling; table regions only overflow horizontally when needed. */
+.main .lower-grid > .panel:first-child .table-scroll {
+  max-height: none;
+}
+@media (min-width: 1251px) {
+  .explorer .filter-controls {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) repeat(2, 110px);
+    gap: 6px;
+  }
+  .explorer .multi-filter {
+    width: 100%;
+    min-width: 0;
+  }
+  .explorer .multi-filter summary {
+    padding: 6px;
+    gap: 4px;
+    font-size: 9px;
+  }
+  .explorer .date-filter {
+    min-width: 0;
+  }
+  .explorer .date-filter input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+@media (min-width: 768px) {
+  /* Keep fixed-sidebar branding painted during long-document scrolling in Chromium. */
+  .sidebar {
+    transform: translateZ(0);
+  }
+  .sidebar .brand {
+    position: relative;
+    z-index: 1;
+    transform: translateZ(0);
+  }
+}

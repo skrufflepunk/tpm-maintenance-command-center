@@ -1,0 +1,79 @@
+name: Review and publish static Pages edition
+
+# No push, PR, schedule or release trigger. Publication always needs manual intent.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish after the static build, tests and security review pass
+        type: boolean
+        default: false
+        required: true
+      confirm_public_hosting:
+        description: Type PUBLISH to confirm this is public hosting with synthetic assets only
+        type: string
+        default: ''
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: static-pages
+  cancel-in-progress: false
+
+jobs:
+  review:
+    permissions:
+      contents: read
+      pages: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Check static edition and explicit publication intent
+        env:
+          WANT_PUBLISH: ${{ inputs.publish }}
+          CONFIRM_PUBLIC: ${{ inputs.confirm_public_hosting }}
+        run: |
+          test -f scripts/check-static-build.mjs
+          if [ "$WANT_PUBLISH" = "true" ] && [ "$CONFIRM_PUBLIC" != "PUBLISH" ]; then
+            echo 'Publication requires the exact PUBLISH confirmation.'
+            exit 1
+          fi
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test
+      - run: npm audit --audit-level=high
+      - run: npx playwright install --with-deps chromium
+      - name: Test production project path, local persistence and iframe with synthetic data
+        run: npm run test:pages
+      - name: Configure Pages only for a confirmed manual publication
+        if: ${{ inputs.publish && inputs.confirm_public_hosting == 'PUBLISH' }}
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - name: Upload only reviewed static assets
+        if: ${{ inputs.publish && inputs.confirm_public_hosting == 'PUBLISH' }}
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: dist
+
+  deploy:
+    if: ${{ inputs.publish && inputs.confirm_public_hosting == 'PUBLISH' }}
+    needs: review
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the reviewed static artifact
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

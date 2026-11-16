@@ -147,3 +147,32 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Local browser checks and operational files
+playwright-report/
+test-results/
+private-imports/
+snapshots/
+*.csv
+*.tsv
+private-assets/
+
+# Protected server data and operator credentials (never browser assets)
+private-data/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.key
+secrets/
+
+build-server/
+# Operator-only identity/host files belong outside the repository.
+**/staff-subjects.json
+**/server.env
+!.env.google.example
+
+# Static edition browser artifacts and private local exports
+test-results-pages/
+*tpm*backup*.json
+*.tpm-backup.json
